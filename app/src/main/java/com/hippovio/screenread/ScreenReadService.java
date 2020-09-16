@@ -24,17 +24,52 @@ public class ScreenReadService extends AccessibilityService {
         if (source == null) {
             return;
         }
-//        List<AccessibilityNodeInfo> findAccessibilityNodeInfosByViewId = source.findAccessibilityNodeInfosByViewId("YOUR PACKAGE NAME:id/RESOURCE ID FROM WHERE YOU WANT DATA");
-//        if (findAccessibilityNodeInfosByViewId.size() > 0) {
-//            AccessibilityNodeInfo parent = (AccessibilityNodeInfo) findAccessibilityNodeInfosByViewId.get(0);
-//            // You can also traverse the list if required data is deep in view hierarchy.
-//            String requiredText = parent.getText().toString();
-//            Log.i("Required Text", requiredText);
-//        }
 
-        Log.i(TAG + "Event", accessibilityEvent.toString() + "");
-        Log.i(TAG + "Source", source.toString() + "");
+        Log.i(TAG ,"source");
+        Log.i(TAG , source.getClassName().toString());
+        Log.i(TAG , source.getText() == null ? "false" : "true");
+        if(source.getText() != null){
+            Log.i(TAG , source.getText().toString());
+        }
+        List<AccessibilityNodeInfo> findAccessibilityNodeInfosByViewId = source.findAccessibilityNodeInfosByViewId("com.whatsapp");
+        Log.i(TAG ,"source child count " + findAccessibilityNodeInfosByViewId.size());
 
+        if (findAccessibilityNodeInfosByViewId.size() > 0) {
+            for(AccessibilityNodeInfo nodeInfo : findAccessibilityNodeInfosByViewId){
+                //AccessibilityNodeInfo parent = (AccessibilityNodeInfo) findAccessibilityNodeInfosByViewId.get(0);
+                // You can also traverse the list if required data is deep in view hierarchy.
+                Log.i(TAG ,"source child");
+                Log.i(TAG , nodeInfo.getClassName().toString());
+                Log.i(TAG , nodeInfo.getText() == null ? "false" : "true");
+                if(nodeInfo.getText() != null){
+                    Log.i(TAG , nodeInfo.getText().toString());
+                }
+            }
+        }
+
+        for(int k = 0; k < source.getChildCount(); k++){
+            AccessibilityNodeInfo viewParentNode = source.getChild(k);
+            if(viewParentNode != null) {
+                if (viewParentNode.getClassName().equals("android.widget.ListView")) {
+                    for (int i = 0; i < viewParentNode.getChildCount(); i++) {
+                        AccessibilityNodeInfo listViewItemNode = viewParentNode.getChild(i);
+                        if (listViewItemNode != null) {
+                            for (int j = 0; j < listViewItemNode.getChildCount(); j++) {
+                                try {
+                                    AccessibilityNodeInfo listItemViewGroupChildNode = listViewItemNode.getChild(j);
+                                    if (listItemViewGroupChildNode.getClassName().equals("android.widget.TextView")) {
+                                        Log.i(TAG + " data", listItemViewGroupChildNode.getText().toString());
+                                    }
+                                } catch (Exception e) {
+
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -49,7 +84,7 @@ public class ScreenReadService extends AccessibilityService {
         // Set the type of events that this service wants to listen to. Others
         // won't be passed to this service.
         info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK | AccessibilityEvent.TYPE_VIEW_CLICKED |
-                AccessibilityEvent.TYPE_VIEW_FOCUSED;
+                AccessibilityEvent.TYPE_VIEW_FOCUSED | AccessibilityEvent.TYPE_WINDOWS_CHANGED | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
 
         info.notificationTimeout = 0;
         info.flags = AccessibilityServiceInfo.DEFAULT;
@@ -76,103 +111,4 @@ public class ScreenReadService extends AccessibilityService {
 
         this.setServiceInfo(info);
     }
-
-
-//    public String getEventNameFromId(Integer eventID){
-//        switch (eventID){
-//            case 4:
-//                return "CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION";
-//            case  6:
-//                return "CONTENT_CHANGE_TYPE_PANE_APPEARED";
-//            case  2:
-//                return "CONTENT_CHANGE_TYPE_PANE_DISAPPEARED";
-//            case 8:
-//                return "CONTENT_CHANGE_TYPE_PANE_TITLE";
-//            case 1:
-//                return "CONTENT_CHANGE_TYPE_SUBTREE";
-//            case 2:
-//                return "CONTENT_CHANGE_TYPE_TEXT";
-//            case 0:
-//                return "CONTENT_CHANGE_TYPE_UNDEFINED";
-//            case  1:
-//                return "INVALID_POSITION";
-//            case  50:
-//                return "MAX_TEXT_LENGTH";
-//            case  1:
-//                return "TYPES_ALL_MASK";
-//            case  1634:
-//                return "TYPE_ANNOUNCEMENT";
-//            case  1677726:
-//                return "TYPE_ASSIST_READING_CONTEXT";
-//            case  52428:
-//                return "TYPE_GESTURE_DETECTION_END";
-//            case  26214:
-//                return "TYPE_GESTURE_DETECTION_START";
-//            case  4:
-//                return "TYPE_NOTIFICATION_STATE_CHANGED";
-//            case  104:
-//                return "TYPE_TOUCH_EXPLORATION_GESTURE_END";
-//            case  52:
-//                return "TYPE_TOUCH_EXPLORATION_GESTURE_START";
-//            case  209712:
-//                return "TYPE_TOUCH_INTERACTION_END";
-//            case  104856:
-//                return "TYPE_TOUCH_INTERACTION_START";
-//            case  3278:
-//                return "TYPE_VIEW_ACCESSIBILITY_FOCUSED";
-//            case 6556:
-//                return "TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED";
-//            case 1:
-//                return "TYPE_VIEW_CLICKED";
-//            case  838868:
-//                return "TYPE_VIEW_CONTEXT_CLICKED";
-//            case 8:
-//                return "TYPE_VIEW_FOCUSED";
-//            case  18:
-//                return "TYPE_VIEW_HOVER_ENTER";
-//            case  26:
-//                return "TYPE_VIEW_HOVER_EXIT";
-//            case 2:
-//                return "TYPE_VIEW_LONG_CLICKED";
-//            case  406:
-//                return "TYPE_VIEW_SCROLLED";
-//            case 4:
-//                return "TYPE_VIEW_SELECTED";
-//            case  6:
-//                return "TYPE_VIEW_TEXT_CHANGED";
-//            case  812:
-//                return "TYPE_VIEW_TEXT_SELECTION_CHANGED";
-//            case  13102:
-//                return "TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY";
-//            case  419434:
-//                return "TYPE_WINDOWS_CHANGED";
-//            case  208:
-//                return "TYPE_WINDOW_CONTENT_CHANGED";
-//            case  2:
-//                return "TYPE_WINDOW_STATE_CHANGED";
-//            case  18:
-//                return "WINDOWS_CHANGE_ACCESSIBILITY_FOCUSED";
-//            case  2:
-//                return "WINDOWS_CHANGE_ACTIVE";
-//            case 1:
-//                return "WINDOWS_CHANGE_ADDED";
-//            case 8:
-//                return "WINDOWS_CHANGE_BOUNDS";
-//            case  52:
-//                return "WINDOWS_CHANGE_CHILDREN";
-//            case  4:
-//                return "WINDOWS_CHANGE_FOCUSED";
-//            case  6:
-//                return "WINDOWS_CHANGE_LAYER";
-//            case  26:
-//                return "WINDOWS_CHANGE_PARENT";
-//            case  104:
-//                return "WINDOWS_CHANGE_PIP";
-//            case 2:
-//                return "WINDOWS_CHANGE_REMOVED";
-//            case 4:
-//                return "WINDOWS_CHANGE_TITLE";
-//            default:
-//        }
-//    }
 }
