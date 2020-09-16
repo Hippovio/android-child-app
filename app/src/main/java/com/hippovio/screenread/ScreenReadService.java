@@ -48,14 +48,18 @@ public class ScreenReadService extends AccessibilityService {
         Log.i(TAG, "onServiceConnected: ");
         // Set the type of events that this service wants to listen to. Others
         // won't be passed to this service.
-        info.eventTypes = AccessibilityEvent.TYPE_VIEW_CLICKED |
+        info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK | AccessibilityEvent.TYPE_VIEW_CLICKED |
                 AccessibilityEvent.TYPE_VIEW_FOCUSED;
+
+        info.notificationTimeout = 0;
+        info.flags = AccessibilityServiceInfo.DEFAULT;
+
 
         // If you only want this service to work with specific applications, set their
         // package names here. Otherwise, when the service is activated, it will listen
         // to events from all applications.
         info.packageNames = new String[]
-                {"com.example.android.myFirstApp", "com.example.android.mySecondApp"};
+                {"com.whatsapp", "com.facebook.orca"};
 
         // Set the type of feedback your service will provide.
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN;
