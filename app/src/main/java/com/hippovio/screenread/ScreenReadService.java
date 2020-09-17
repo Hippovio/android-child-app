@@ -30,13 +30,15 @@ public class ScreenReadService extends AccessibilityService {
         if (source.getChildCount() > 0) {
             for(int j = 0; j < source.getChildCount(); j++){
                 AccessibilityNodeInfo nodeInfo = source.getChild(j);
-                String msg = "";
-                for(int i=0;  i < nodeInfo.getChildCount(); i++) {
-                    if(nodeInfo.getChild(i) != null && nodeInfo.getChild(i).getText() != null) {
-                        msg += nodeInfo.getChild(i).getText() + "\t";
+                if(nodeInfo != null) {
+                    String msg = "";
+                    for (int i = 0; i < nodeInfo.getChildCount(); i++) {
+                        if (nodeInfo.getChild(i) != null && nodeInfo.getChild(i).getText() != null) {
+                            msg += nodeInfo.getChild(i).getText() + "\t";
+                        }
                     }
+                    Log.i(TAG + "Message", msg);
                 }
-                Log.i(TAG + "Message", msg);
             }
         }
 
