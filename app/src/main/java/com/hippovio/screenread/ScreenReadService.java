@@ -6,8 +6,6 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import java.util.List;
-
 public class ScreenReadService extends AccessibilityService {
 
     AccessibilityServiceInfo info = new AccessibilityServiceInfo();
@@ -21,7 +19,7 @@ public class ScreenReadService extends AccessibilityService {
         if (source == null)
             return;
         String sourceClass = source.getClassName().toString();
-        if (!sourceClass.equals("android.widget.ListView") || accessibilityEvent.getEventType() != 2048) {
+        if (!sourceClass.equals("android.widget.ListView") || accessibilityEvent.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             return;
         }
 
@@ -55,8 +53,7 @@ public class ScreenReadService extends AccessibilityService {
         Log.i(TAG, "onServiceConnected: ");
         // Set the type of events that this service wants to listen to. Others
         // won't be passed to this service.
-        info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK | AccessibilityEvent.TYPE_VIEW_CLICKED |
-                AccessibilityEvent.TYPE_VIEW_FOCUSED | AccessibilityEvent.TYPE_WINDOWS_CHANGED | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
 
         info.notificationTimeout = 0;
         info.flags = AccessibilityServiceInfo.DEFAULT;
