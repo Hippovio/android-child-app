@@ -2,12 +2,9 @@ package com.hippovio.screenread;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.os.Build;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-
-import androidx.annotation.RequiresApi;
 
 import java.util.List;
 
@@ -21,55 +18,30 @@ public class ScreenReadService extends AccessibilityService {
         Log.i(TAG, "test");
 
         AccessibilityNodeInfo source = accessibilityEvent.getSource();
-        if (source == null) {
+        if (source == null)
+            return;
+        String sourceClass = source.getClassName().toString();
+        if (!sourceClass.equals("android.widget.ListView") || accessibilityEvent.getEventType() != 2048) {
             return;
         }
 
-        Log.i(TAG ,"source");
-        Log.i(TAG , source.getClassName().toString());
-        Log.i(TAG , source.getText() == null ? "false" : "true");
-        if(source.getText() != null){
-            Log.i(TAG , source.getText().toString());
-        }
-        List<AccessibilityNodeInfo> findAccessibilityNodeInfosByViewId = source.findAccessibilityNodeInfosByViewId("com.whatsapp");
-        Log.i(TAG ,"source child count " + findAccessibilityNodeInfosByViewId.size());
+        Log.i(TAG + "Source:", sourceClass);
 
-        if (findAccessibilityNodeInfosByViewId.size() > 0) {
-            for(AccessibilityNodeInfo nodeInfo : findAccessibilityNodeInfosByViewId){
-                //AccessibilityNodeInfo parent = (AccessibilityNodeInfo) findAccessibilityNodeInfosByViewId.get(0);
-                // You can also traverse the list if required data is deep in view hierarchy.
-                Log.i(TAG ,"source child");
-                Log.i(TAG , nodeInfo.getClassName().toString());
-                Log.i(TAG , nodeInfo.getText() == null ? "false" : "true");
-                if(nodeInfo.getText() != null){
-                    Log.i(TAG , nodeInfo.getText().toString());
-                }
-            }
-        }
+        Log.i(TAG ,"Child count " + source.getChildCount());
 
-        for(int k = 0; k < source.getChildCount(); k++){
-            AccessibilityNodeInfo viewParentNode = source.getChild(k);
-            if(viewParentNode != null) {
-                if (viewParentNode.getClassName().equals("android.widget.ListView")) {
-                    for (int i = 0; i < viewParentNode.getChildCount(); i++) {
-                        AccessibilityNodeInfo listViewItemNode = viewParentNode.getChild(i);
-                        if (listViewItemNode != null) {
-                            for (int j = 0; j < listViewItemNode.getChildCount(); j++) {
-                                try {
-                                    AccessibilityNodeInfo listItemViewGroupChildNode = listViewItemNode.getChild(j);
-                                    if (listItemViewGroupChildNode.getClassName().equals("android.widget.TextView")) {
-                                        Log.i(TAG + " data", listItemViewGroupChildNode.getText().toString());
-                                    }
-                                } catch (Exception e) {
-
-                                }
-                            }
-
-                        }
+        if (source.getChildCount() > 0) {
+            for(int j = 0; j < source.getChildCount(); j++){
+                AccessibilityNodeInfo nodeInfo = source.getChild(j);
+                String msg = "";
+                for(int i=0;  i < nodeInfo.getChildCount(); i++) {
+                    if(nodeInfo.getChild(i) != null && nodeInfo.getChild(i).getText() != null) {
+                        msg += nodeInfo.getChild(i).getText() + "\t";
                     }
                 }
+                Log.i(TAG + "Message", msg);
             }
         }
+
     }
 
     @Override
