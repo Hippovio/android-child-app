@@ -30,30 +30,6 @@ public class ScreenReadService extends AccessibilityService {
         if (whatsappPackageName.equals(accessibilityEvent.getPackageName())) {
             whatsAppService.whatsAppEvent(accessibilityEvent, rootInActiveWindow);
         }
-<<<<<<< HEAD
-=======
-
-//        Log.i(TAG + "Source:", sourceClass);
-//
-//        Log.i(TAG ,"Child count " + source.getChildCount());
-//        Log.i(TAG + "Window Id:", source.getWindowId() + "");
-//        if (source.getChildCount() > 0) {
-//            for(int j = 0; j < source.getChildCount(); j++){
-//                AccessibilityNodeInfo nodeInfo = source.getChild(j);
-//                if(nodeInfo != null) {
-//                    String msg = "";
-//                    for (int i = 0; i < nodeInfo.getChildCount(); i++) {
-//                        AccessibilityNodeInfo node = nodeInfo.getChild(i);
-//                        if (node != null && node.getText() != null) {
-//                            msg += node.getText() + "\t";
-//                        }
-//                    }
-//                    Log.i(TAG + "Message", msg);
-//                }
-//            }
-//        }
-
->>>>>>> 6a3b23bd8dbb1cfdb34626760344f1e52e196f74
     }
 
     @Override
@@ -69,22 +45,11 @@ public class ScreenReadService extends AccessibilityService {
         // won't be passed to this service.
         info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK | AccessibilityEvent.TYPE_VIEW_SCROLLED | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
 
-<<<<<<< HEAD
         // If you only want this service to work with specific applications, set their
         // package names here. Otherwise, when the service is activated, it will listen
         // to events from all applications.
         info.packageNames = new String[]{whatsappPackageName, "com.facebook.orca"};
-=======
-        info.notificationTimeout = 0;
-        info.flags = AccessibilityServiceInfo.DEFAULT;
 
-
-        // If you only want this service to work with specific applications, set their
-        // package names here. Otherwise, when the service is activated, it will listen
-        // to events from all applications.
-        info.packageNames = new String[]
-                {whatsappPackageName, "com.facebook.orca"};
->>>>>>> 6a3b23bd8dbb1cfdb34626760344f1e52e196f74
 
         // Set the type of feedback your service will provide.
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN;
@@ -94,12 +59,7 @@ public class ScreenReadService extends AccessibilityService {
         // application-specific, so the flag isn't necessary. If this was a
         // general-purpose service, it would be worth considering setting the
         // DEFAULT flag.
-
-<<<<<<< HEAD
         info.flags = AccessibilityServiceInfo.DEFAULT;
-=======
-        // info.flags = AccessibilityServiceInfo.DEFAULT;
->>>>>>> 6a3b23bd8dbb1cfdb34626760344f1e52e196f74
 
         info.notificationTimeout = 100;
 
