@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.hippovio.screenread">
+    package="com.hippovio.child">
 
     <application
         android:allowBackup="true"
@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.hippovio.child.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -17,7 +17,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".ScreenReadService"
+        <service android:name="com.hippovio.child.ScreenReadService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:label="@string/accessibility_service_label">
             <intent-filter>
@@ -29,5 +29,7 @@
         </service>
 
     </application>
+
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
 </manifest>
