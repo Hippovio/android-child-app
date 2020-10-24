@@ -5,7 +5,8 @@ package com.hippovio.entities.enums;
  * Enum values for sources and package names.
  */
 public enum PackageName {
-    WHATSAPP("com.whatsapp");
+    WHATSAPP("com.whatsapp"),
+    FACEBOOK("com.facebook.orca");
 
     private String packageName;
 

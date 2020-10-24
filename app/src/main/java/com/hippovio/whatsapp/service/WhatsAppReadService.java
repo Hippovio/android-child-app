@@ -4,6 +4,10 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.room.Room;
+
+import com.hippovio.databaseHelper.HippovioDatabase;
+import com.hippovio.databaseHelper.entities.MessageCheckpoints;
 import com.hippovio.screenread.AccessibilityHelper;
 import com.hippovio.entities.Message;
 import java.text.DateFormat;
@@ -234,6 +238,6 @@ public class WhatsAppReadService {
                 startInsert = true;
         }
 
-        Log.d(TAG,  "SavedMessages -> " + savedChatLinkedList);
+        //Log.d(TAG,  "SavedMessages -> " + savedChatLinkedList);
     }
 }

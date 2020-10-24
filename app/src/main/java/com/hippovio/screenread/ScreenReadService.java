@@ -6,13 +6,13 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import com.hippovio.entities.enums.PackageName;
 import com.hippovio.whatsapp.service.WhatsAppReadService;
 
 public class ScreenReadService extends AccessibilityService {
 
     AccessibilityServiceInfo info = new AccessibilityServiceInfo();
     private WhatsAppReadService whatsAppService = new WhatsAppReadService();
-    private String whatsappPackageName = "com.whatsapp";
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
@@ -27,8 +27,9 @@ public class ScreenReadService extends AccessibilityService {
             return;
         }
 
-        if (whatsappPackageName.equals(accessibilityEvent.getPackageName())) {
-            whatsAppService.whatsAppEvent(accessibilityEvent, rootInActiveWindow);
+        switch (PackageName.getByValue(accessibilityEvent.getPackageName().toString())) {
+            case WHATSAPP: whatsAppService.whatsAppEvent(accessibilityEvent, rootInActiveWindow); break;
+            default: break;
         }
     }
 
@@ -48,7 +49,7 @@ public class ScreenReadService extends AccessibilityService {
         // If you only want this service to work with specific applications, set their
         // package names here. Otherwise, when the service is activated, it will listen
         // to events from all applications.
-        info.packageNames = new String[]{whatsappPackageName, "com.facebook.orca"};
+        info.packageNames = new String[]{PackageName.WHATSAPP.value(), PackageName.FACEBOOK.value()};
 
 
         // Set the type of feedback your service will provide.
