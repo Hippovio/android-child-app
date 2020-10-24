@@ -1,19 +1,13 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
+    "version": 2,
     "identityHash": "790f3604428edca00ab4bc8efe4fa7e8",
     "entities": [
       {
         "tableName": "child_read_message_checkpoints",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`message_source` INTEGER, `start_message_id` TEXT NOT NULL, `start_message_hash` INTEGER NOT NULL, `end_message_id` TEXT, `end_message_hash` INTEGER NOT NULL, `chatee_id` TEXT, PRIMARY KEY(`start_message_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`start_message_id` TEXT NOT NULL, `start_message_hash` INTEGER NOT NULL, `end_message_id` TEXT, `end_message_hash` INTEGER NOT NULL, `chatee_id` TEXT, `message_source` INTEGER, PRIMARY KEY(`start_message_id`))",
         "fields": [
-          {
-            "fieldPath": "source",
-            "columnName": "message_source",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
           {
             "fieldPath": "startMessageId",
             "columnName": "start_message_id",
@@ -42,6 +36,12 @@
             "fieldPath": "chateeId",
             "columnName": "chatee_id",
             "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "message_source",
+            "affinity": "INTEGER",
             "notNull": false
           }
         ],

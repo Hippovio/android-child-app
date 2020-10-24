@@ -47,4 +47,8 @@ dependencies {
 
     // optional - Test helpers
     testImplementation "androidx.room:room-testing:$room_version"
+
+    // Lombok Plugin
+    compileOnly "org.projectlombok:lombok:1.18.16"
+    annotationProcessor 'org.projectlombok:lombok:1.18.4'
 }

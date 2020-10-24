@@ -4,11 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import com.hippovio.databaseHelper.constants.TableName;
+import com.hippovio.databaseHelper.typeConverters.PackageNameConverter;
 import com.hippovio.entities.enums.PackageName;
 
-import java.util.Date;
+import lombok.Builder;
 
 /**
  * Author: Raghav Agarwal
@@ -19,9 +21,6 @@ import java.util.Date;
 
 @Entity(tableName = TableName.READ_MESSAGE_CHECKPOINTS)
 public class MessageCheckpoints {
-
-//    @ColumnInfo(name = "message_source")
-//    public PackageName source;
 
     @PrimaryKey
     @ColumnInfo(name = "start_message_id")
@@ -43,4 +42,24 @@ public class MessageCheckpoints {
 //    @ColumnInfo(name = "end_message_date")
 //    public Date endMessageDate;
 
+    @ColumnInfo(name = "chatee_id")
+    public String chateeId;
+
+    @TypeConverters({PackageNameConverter.class})
+    @ColumnInfo(name = "message_source")
+    public PackageName source;
+
+    @Builder(builderMethodName = "MessageCheckpointsBuilder")
+    public static MessageCheckpoints messageCheckpoints(String startMessageId, int startMessageHash,
+                                                 String endMessageId, int endMessageHash, String chateeId, PackageName source) {
+        MessageCheckpoints messageCheckpoints = new MessageCheckpoints();
+        messageCheckpoints.startMessageId = startMessageId;
+        messageCheckpoints.startMessageHash = startMessageHash;
+        messageCheckpoints.endMessageId = endMessageId;
+        messageCheckpoints.endMessageHash = endMessageHash;
+        messageCheckpoints.chateeId = chateeId;
+        messageCheckpoints.source = source;
+
+        return messageCheckpoints;
+    }
 }
