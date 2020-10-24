@@ -220,7 +220,7 @@ public class WhatsAppReadService {
             savedChatLinkedList.addAll(messages);
             return;
         }
-        Message lastSavedMessage = .getLast();
+        Message lastSavedMessage = savedChatLinkedList.getLast();
         boolean startInsert = false;
         Long dateFromLastMessage = lastSavedMessage.getDate();
         for (Message message : messages) {
