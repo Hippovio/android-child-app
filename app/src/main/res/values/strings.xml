@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Screen Read</string>
+    <string name="accessibility_service_label">ScreenReadService</string>
 </resources>
