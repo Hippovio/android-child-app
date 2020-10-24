@@ -5,7 +5,11 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.hippovio.screenread.AccessibilityHelper;
+<<<<<<< HEAD
 import com.hippovio.entities.Message;
+=======
+import com.hippovio.whatsapp.entities.Message;
+>>>>>>> 6a3b23bd8dbb1cfdb34626760344f1e52e196f74
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;

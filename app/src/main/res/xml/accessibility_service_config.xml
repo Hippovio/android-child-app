@@ -1,0 +1,11 @@
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_service_label"
+    android:packageNames="com.example.android.apis, com.whatsapp, com.facebook.orca"
+    android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagReportViewIds|flagRequestEnhancedWebAccessibility|flagRetrieveInteractiveWindows"
+    android:accessibilityFeedbackType="feedbackSpoken|feedbackGeneric"
+    android:notificationTimeout="100"
+    android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
+    android:accessibilityEventTypes="typeWindowContentChanged"
+    android:settingsActivity="com.example.android.apis.accessibility.TestBackActivity"
+    />
