@@ -1,4 +1,4 @@
-package com.hippovio.screenread;
+package com.hippovio.child;
 
 import android.content.Context;
 

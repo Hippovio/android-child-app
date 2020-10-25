@@ -1,0 +1,64 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "790f3604428edca00ab4bc8efe4fa7e8",
+    "entities": [
+      {
+        "tableName": "child_read_message_checkpoints",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`message_source` INTEGER, `start_message_id` TEXT NOT NULL, `start_message_hash` INTEGER NOT NULL, `end_message_id` TEXT, `end_message_hash` INTEGER NOT NULL, `chatee_id` TEXT, PRIMARY KEY(`start_message_id`))",
+        "fields": [
+          {
+            "fieldPath": "source",
+            "columnName": "message_source",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "startMessageId",
+            "columnName": "start_message_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startMessageHash",
+            "columnName": "start_message_hash",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endMessageId",
+            "columnName": "end_message_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "endMessageHash",
+            "columnName": "end_message_hash",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chateeId",
+            "columnName": "chatee_id",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "start_message_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '790f3604428edca00ab4bc8efe4fa7e8')"
+    ]
+  }
+}

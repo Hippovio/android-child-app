@@ -1,22 +1,27 @@
-package com.hippovio.whatsapp.entities;
+package com.hippovio.child.pojos;
+
+import com.hippovio.child.database.local.entities.Chatee;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 
 public class Message {
-    private String sender;
+    private String id;
+    private Chatee chatee;
     private String msg;
     private Boolean isReceived;
     private Long time;
     private String timeText;
     private Boolean isUnread;
+    private Date date;
     //state - enum: NEW, UNREAD, UPLOADED, COMPLETE, READ
     //source - enum: WHATSAPP, FB
     // Global:
     // childId
 
-    public Message(String sender, String msg, Boolean isReceived, Long time, String timeText, boolean isUnread) {
-        this.sender = sender;
+    public Message(Chatee chatee, String msg, Boolean isReceived, Long time, String timeText, boolean isUnread) {
+        this.chatee = chatee;
         this.msg = msg;
         this.isReceived = isReceived;
         this.time = time;
@@ -24,12 +29,20 @@ public class Message {
         this.isUnread = isUnread;
     }
 
-    public String getSender() {
-        return sender;
+    public String getId() {
+        return id;
     }
 
-    public void setSender(String sender) {
-        this.sender = sender;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Chatee getChatee() {
+        return chatee;
+    }
+
+    public void setChatee(Chatee chatee) {
+        this.chatee = chatee;
     }
 
     public String getMsg() {
@@ -72,12 +85,20 @@ public class Message {
         isUnread = unread;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Message message = (Message) o;
-        return Objects.equals(sender, message.sender) &&
+        return Objects.equals(chatee, message.chatee) &&
                 Objects.equals(msg, message.msg) &&
                 Objects.equals(isReceived, message.isReceived) &&
                 Objects.equals(time, message.time);
@@ -86,7 +107,7 @@ public class Message {
     @Override
     public String toString() {
         return "Message{\n" +
-                "sender='" + sender + "\'\n" +
+                "chatee='" + chatee.toString() + "\'\n" +
                 ", msg='" + msg + "\'\n" +
                 ", isReceived=" + isReceived + "\n" +
                 ", time=" + time + '\n' +
@@ -101,7 +122,7 @@ public class Message {
         return Objects.hash(msg, isReceived, timeText);
     }
 
-    public Long getDate() {
+    public Long computeDate() {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(this.time);
         cal.set(Calendar.HOUR, 0);

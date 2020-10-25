@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "393897759137",
+    "firebase_url": "https://hippovio-core.firebaseio.com",
+    "project_id": "hippovio-core",
+    "storage_bucket": "hippovio-core.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:393897759137:android:401caa4ee93cb18aeb7be0",
+        "android_client_info": {
+          "package_name": "com.hippovio.child"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "393897759137-67ng1o32a9r5c37084e4ohpesc0p1bll.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlhU3Ayd92EAgk4HX9bAJCqI8WtIvOL-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "393897759137-67ng1o32a9r5c37084e4ohpesc0p1bll.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,8 +1,12 @@
-package com.hippovio.screenread;
+package com.hippovio.child;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
 
 import android.os.Bundle;
+
+import com.hippovio.child.database.local.HippovioDatabase;
+
 
 public class MainActivity extends AppCompatActivity {
 
