@@ -25,9 +25,9 @@ public interface ChateeDao {
     @Delete
     void delete(Chatee chatee);
 
-    @Query("SELECT * FROM " + CHATEE + " WHERE source= " + WHATSAPP + " AND identifier= :phoneNumber limit 1")
+    @Query("SELECT * FROM " + CHATEE + " WHERE source= '" + WHATSAPP + "' AND identifier= :phoneNumber limit 1")
     Chatee getWhatsappChateeForSender(String phoneNumber);
 
-    @Query("SELECT * FROM " + CHATEE + " WHERE source= " + INSTAGRAM + " AND identifier= :instagramUsername")
+    @Query("SELECT * FROM " + CHATEE + " WHERE source= '" + INSTAGRAM + "' AND identifier= :instagramUsername")
     List<Chatee> getInstagramChateeForSender(String instagramUsername);
 }

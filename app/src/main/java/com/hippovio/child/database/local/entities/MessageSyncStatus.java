@@ -1,7 +1,9 @@
 package com.hippovio.child.database.local.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import com.hippovio.child.database.local.constants.TableName;
 import com.hippovio.child.enums.MessageSyncStates;
@@ -12,7 +14,9 @@ import java.util.Date;
 @Entity(tableName = TableName.MESSAGE_SYNC_STATUS)
 public class MessageSyncStatus {
 
+    @PrimaryKey
     @ColumnInfo(name = "firebase_id")
+    @NonNull
     private String firebaseId;
 
     @ColumnInfo(name = "sync_state")

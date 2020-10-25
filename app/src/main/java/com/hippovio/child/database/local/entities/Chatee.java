@@ -12,8 +12,7 @@ public class Chatee {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    @NonNull
-    private String chateeId;
+    private Integer chateeId;
 
     @ColumnInfo(name = "source")
     @NonNull
@@ -32,11 +31,11 @@ public class Chatee {
     private String chateeIdentifier;
 
     @NonNull
-    public String getChateeId() {
+    public Integer getChateeId() {
         return chateeId;
     }
 
-    public void setChateeId(@NonNull String chateeId) {
+    public void setChateeId(@NonNull Integer chateeId) {
         this.chateeId = chateeId;
     }
 

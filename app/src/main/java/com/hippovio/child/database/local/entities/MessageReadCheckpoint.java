@@ -27,8 +27,7 @@ public class MessageReadCheckpoint {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    @NonNull
-    private String checkpointId;
+    private Integer checkpointId;
 
     @ColumnInfo(name = "chatee_id")
     @NonNull
@@ -72,11 +71,11 @@ public class MessageReadCheckpoint {
     }
 
     @NonNull
-    public String getCheckpointId() {
+    public Integer getCheckpointId() {
         return checkpointId;
     }
 
-    public void setCheckpointId(@NonNull String checkpointId) {
+    public void setCheckpointId(@NonNull Integer checkpointId) {
         this.checkpointId = checkpointId;
     }
 

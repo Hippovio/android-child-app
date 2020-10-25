@@ -7,9 +7,17 @@ public enum MessageSyncStates {
     COMPLETE("COMPLETE"),
     READ("READ");
 
+    MessageSyncStates(String syncState) {
+        this.syncState = syncState;
+    }
+
     private String syncState;
 
-    MessageSyncStates(String syncState) {
+    public String getSyncState() {
+        return syncState;
+    }
+
+    public void setSyncState(String syncState) {
         this.syncState = syncState;
     }
 
