@@ -4,9 +4,17 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import com.hippovio.child.database.local.constants.TableName;
+import com.hippovio.child.database.local.typeConverters.SourceConverter;
+import com.hippovio.child.enums.Sources;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 @Entity(tableName = TableName.CHATEE)
 public class Chatee {
 
@@ -16,7 +24,8 @@ public class Chatee {
 
     @ColumnInfo(name = "source")
     @NonNull
-    private String chateeSource;
+    @TypeConverters({SourceConverter.class})
+    private Sources chateeSource;
 
     @ColumnInfo(name = "type")
     @NonNull
@@ -30,48 +39,4 @@ public class Chatee {
     @NonNull
     private String chateeIdentifier;
 
-    @NonNull
-    public Integer getChateeId() {
-        return chateeId;
-    }
-
-    public void setChateeId(@NonNull Integer chateeId) {
-        this.chateeId = chateeId;
-    }
-
-    @NonNull
-    public String getChateeSource() {
-        return chateeSource;
-    }
-
-    public void setChateeSource(@NonNull String chateeSource) {
-        this.chateeSource = chateeSource;
-    }
-
-    @NonNull
-    public String getChateeType() {
-        return chateeType;
-    }
-
-    public void setChateeType(@NonNull String chateeType) {
-        this.chateeType = chateeType;
-    }
-
-    @NonNull
-    public String getChateeName() {
-        return chateeName;
-    }
-
-    public void setChateeName(@NonNull String chateeName) {
-        this.chateeName = chateeName;
-    }
-
-    @NonNull
-    public String getChateeIdentifier() {
-        return chateeIdentifier;
-    }
-
-    public void setChateeIdentifier(@NonNull String chateeIdentifier) {
-        this.chateeIdentifier = chateeIdentifier;
-    }
 }

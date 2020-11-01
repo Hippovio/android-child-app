@@ -4,13 +4,20 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
 
 import com.hippovio.child.database.local.constants.TableName;
+import com.hippovio.child.database.local.typeConverters.DateConverter;
+import com.hippovio.child.database.local.typeConverters.syncStatusConverter;
 import com.hippovio.child.enums.MessageSyncStates;
-import com.hippovio.child.enums.PackageName;
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 @Entity(tableName = TableName.MESSAGE_SYNC_STATUS)
 public class MessageSyncStatus {
 
@@ -20,38 +27,16 @@ public class MessageSyncStatus {
     private String firebaseId;
 
     @ColumnInfo(name = "sync_state")
+    @TypeConverters({syncStatusConverter.class})
     private MessageSyncStates syncState;
 
     @ColumnInfo(name = "last_modified_time")
+    @TypeConverters({DateConverter.class})
     private Date lastModified;
 
     public MessageSyncStatus(String firebaseId, MessageSyncStates syncState, Date lastModified) {
         this.firebaseId = firebaseId;
         this.syncState = syncState;
-        this.lastModified = lastModified;
-    }
-
-    public String getFirebaseId() {
-        return firebaseId;
-    }
-
-    public void setFirebaseId(String firebaseId) {
-        this.firebaseId = firebaseId;
-    }
-
-    public MessageSyncStates getSyncState() {
-        return syncState;
-    }
-
-    public void setSyncState(MessageSyncStates syncState) {
-        this.syncState = syncState;
-    }
-
-    public Date getLastModified() {
-        return lastModified;
-    }
-
-    public void setLastModified(Date lastModified) {
         this.lastModified = lastModified;
     }
 }

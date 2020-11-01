@@ -1,4 +1,4 @@
-package com.hippovio.child;
+package com.hippovio.child.services.messageRead.helpers;
 
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 

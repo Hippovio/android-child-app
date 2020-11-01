@@ -14,9 +14,11 @@ public class HashingService {
     public static String computeHash(Message message){
 
         List<String> hashEntries = new ArrayList<>();
-        hashEntries.add(message.getChatee().getChateeId());
-        hashEntries.add(Long.toString(message.getDate().getTime()));
+        hashEntries.add(message.getChatee().getChateeId().toString());
+        //hashEntries.add(Long.toString(message.getDate().getTime()));
+        hashEntries.add(message.getTimeText());
         hashEntries.add(message.getMsg());
+        hashEntries.add(message.getIsReceived().toString());
         return StringUtils.join(hashEntries, "-");
     }
 
