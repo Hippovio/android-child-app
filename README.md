@@ -1,2 +1,2 @@
-# Screen Read Android
-Screen Read Android
+# Android Child App
+Android Child App
