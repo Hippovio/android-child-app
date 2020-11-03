@@ -1,4 +1,4 @@
-package com.hippovio.child;
+package com.hippovio.child.services.messageRead;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
@@ -21,16 +21,20 @@ public class ScreenReadService extends AccessibilityService {
         if (source == null)
             return;
 
-        AccessibilityNodeInfoCompat rootInActiveWindow = AccessibilityNodeInfoCompat.wrap (getRootInActiveWindow ());
+        AccessibilityNodeInfoCompat rootInActiveWindow = AccessibilityNodeInfoCompat.wrap(getRootInActiveWindow ());
 
         if (rootInActiveWindow == null) {
             return;
         }
 
+        MessageReadService messageReadService = null;
         switch (PackageName.getByValue(accessibilityEvent.getPackageName().toString())) {
-            case WHATSAPP: whatsAppService.whatsAppEvent(accessibilityEvent, rootInActiveWindow, this); break;
+            case WHATSAPP: messageReadService = whatsAppService; break;
             default: break;
         }
+
+        if (messageReadService != null)
+            messageReadService.appEvent(accessibilityEvent, rootInActiveWindow, this);
     }
 
     @Override

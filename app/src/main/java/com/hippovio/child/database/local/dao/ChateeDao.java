@@ -9,8 +9,8 @@ import com.hippovio.child.database.local.entities.Chatee;
 
 import java.util.List;
 
-import static com.hippovio.child.database.local.constants.Sources.INSTAGRAM;
-import static com.hippovio.child.database.local.constants.Sources.WHATSAPP;
+import static com.hippovio.child.constants.Sources.INSTAGRAM;
+import static com.hippovio.child.constants.Sources.WHATSAPP;
 import static com.hippovio.child.database.local.constants.TableName.CHATEE;
 
 @Dao

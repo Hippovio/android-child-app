@@ -1,96 +1,42 @@
 package com.hippovio.child.pojos;
 
 import com.hippovio.child.database.local.entities.Chatee;
+import com.hippovio.child.hashing.HashingService;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class Message {
     private String id;
     private Chatee chatee;
     private String msg;
     private Boolean isReceived;
-    private Long time;
     private String timeText;
     private Boolean isUnread;
-    private Date date;
+    private Date dateTime = null;
+    private String messageHash;
     //state - enum: NEW, UNREAD, UPLOADED, COMPLETE, READ
     //source - enum: WHATSAPP, FB
     // Global:
     // childId
-
-    public Message(Chatee chatee, String msg, Boolean isReceived, Long time, String timeText, boolean isUnread) {
-        this.chatee = chatee;
-        this.msg = msg;
-        this.isReceived = isReceived;
-        this.time = time;
-        this.timeText = timeText;
-        this.isUnread = isUnread;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Chatee getChatee() {
-        return chatee;
-    }
-
-    public void setChatee(Chatee chatee) {
-        this.chatee = chatee;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Boolean getReceived() {
-        return isReceived;
-    }
-
-    public void setReceived(Boolean received) {
-        isReceived = received;
-    }
-
-    public Long getTime() {
-        return time;
-    }
-
-    public void setTime(Long time) {
-        this.time = time;
-    }
-
-    public String getTimeText() {
-        return timeText;
-    }
-
-    public void setTimeText(String timeText) {
-        this.timeText = timeText;
-    }
-
-    public Boolean getUnread() {
-        return isUnread;
-    }
-
-    public void setUnread(Boolean unread) {
-        isUnread = unread;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
+    @Builder(builderMethodName = "MessageBuilder")
+    public static Message messageBuilder(Chatee chatee, String msg, Boolean isReceived, Date date, String timeText, boolean isUnread) {
+        Message message = new Message();
+        message.setChatee(chatee);
+        message.setMsg(msg);
+        message.setIsReceived(isReceived);
+        message.setTimeText(timeText);
+        message.setDate(date);
+        message.setIsUnread(isUnread);
+        message.setMessageHash(HashingService.computeHash(message));
+        return message;
     }
 
     @Override
@@ -101,32 +47,45 @@ public class Message {
         return Objects.equals(chatee, message.chatee) &&
                 Objects.equals(msg, message.msg) &&
                 Objects.equals(isReceived, message.isReceived) &&
-                Objects.equals(time, message.time);
+                Objects.equals(dateTime, message.dateTime);
     }
 
     @Override
     public String toString() {
         return "Message{\n" +
-                "chatee='" + chatee.toString() + "\'\n" +
+                "id='" + id + "\'\n" +
+                "chatee='" + chatee + "\'\n" +
                 ", msg='" + msg + "\'\n" +
                 ", isReceived=" + isReceived + "\n" +
-                ", time=" + time + '\n' +
+                ", dateTime=" + dateTime + '\n' +
                 ", timeText='" + timeText + "\'\n" +
                 ", isUnread='" + isUnread + "\'\n" +
-                ", hashcode=" + this.hashCode() + '\n' +
+                ", messageHash=" + messageHash + '\n' +
                 '}';
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(msg, isReceived, timeText);
+    public void setDate(Date date) {
+        if (date == null)
+            return;
+        try{
+            int hrs = Integer.parseInt(timeText.substring(0, timeText.indexOf(':')));
+            int mins = Integer.parseInt(timeText.substring(timeText.indexOf(':') + 1, timeText.indexOf(" ")));
+            boolean isPm = timeText.substring(timeText.indexOf(" ") + 1).equalsIgnoreCase("pm");
+            Long time =  date.getTime() + (hrs * 3600000) + (mins * 60000);
+            if (isPm) {
+                time += 12 * 60 * 60 * 1000;
+            }
+            dateTime = new Date(time);
+        } catch (Exception e) {}
     }
 
-    public Long computeDate() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(this.time);
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        return cal.getTimeInMillis();
+    public Date getDate() {
+        if (dateTime == null)
+            return null;
+        Calendar c = Calendar.getInstance();
+        c.setTime(dateTime);
+        c.set(Calendar.HOUR, 0);
+        c.set(Calendar.MINUTE, 0);
+        return c.getTime();
     }
 }

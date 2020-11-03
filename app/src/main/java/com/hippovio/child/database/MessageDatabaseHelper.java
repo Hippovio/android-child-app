@@ -3,6 +3,7 @@ package com.hippovio.child.database;
 import android.content.Context;
 
 import androidx.room.Room;
+import androidx.room.Transaction;
 
 import com.hippovio.child.database.firebase.FirebaseHelper;
 import com.hippovio.child.database.firebase.FirebaseServiceInterfaces;
@@ -16,24 +17,48 @@ import com.hippovio.child.pojos.Message;
 import java.util.Date;
 import java.util.List;
 
-public class DatabaseHelper {
+/**
+ * Database helper for offline/online messages.
+ */
+public class MessageDatabaseHelper {
 
     HippovioDatabase localDb;
 
-    public DatabaseHelper() {
+    public MessageDatabaseHelper() {
     }
 
-    public DatabaseHelper(Context context) {
+    public MessageDatabaseHelper(Context context) {
         localDb = Room.databaseBuilder(context, HippovioDatabase.class, "database-name").build();
     }
+
+    /**
+     * LOCAL DB METHODS
+     */
 
     public Chatee getLocalWhatsappChateeForSender(String phoneNumber){
         return localDb.chateeDao().getWhatsappChateeForSender(phoneNumber);
     }
 
     public List<MessageReadCheckpoint> getLocalMessageBreakPointsForChatee(Chatee chatee){
-        return localDb.messageCheckpointsDao().getCheckpointsForChateeIdOrderedByLatest(chatee.getChateeId());
+        return localDb.messageCheckpointsDao().getCheckpointsForChateeIdOrderedByLatest(chatee.getChateeId().toString());
     }
+
+    public void deleteCheckpoint(MessageReadCheckpoint checkpoint){
+        localDb.messageCheckpointsDao().delete(checkpoint);
+    }
+
+    public void updateCheckpoint(MessageReadCheckpoint checkpoint){
+        localDb.messageCheckpointsDao().updateMessageReadCheckpoint(checkpoint);
+    }
+
+    public void updateAndCreateCheckpoint(MessageReadCheckpoint update, MessageReadCheckpoint create){
+        localDb.messageCheckpointsDao().updateAndCreateCheckpoint(update, create);
+    }
+
+
+    /**
+     * ONLINE FIREBASE DB METHODS
+     */
 
     public void checkOnlineDbConnectivity(){
         FirebaseHelper.checkConnectivity();
@@ -56,6 +81,10 @@ public class DatabaseHelper {
 
             }
         });
+    }
+
+    public void uploadMessagesOnline(final List<Message> messages){
+        messages.forEach(message -> uploadMessageOnline(message));
     }
 
 }

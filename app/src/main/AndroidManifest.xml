@@ -17,7 +17,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.hippovio.child.ScreenReadService"
+        <service android:name="com.hippovio.child.services.messageRead.ScreenReadService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:label="@string/accessibility_service_label">
             <intent-filter>
