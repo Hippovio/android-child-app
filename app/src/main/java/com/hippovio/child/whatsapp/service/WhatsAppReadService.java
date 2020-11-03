@@ -48,6 +48,7 @@ public class WhatsAppReadService extends MessageReadService {
                 chatee = null;
                 return;
             }
+            //TODO: GET CHATTEE FROM PHONE NUMBER
             areUnreadMessages = false;
         } else
             return;
@@ -60,16 +61,17 @@ public class WhatsAppReadService extends MessageReadService {
         if (groupView.getChildCount() == 1) {
             if (isUnreadTag(groupView)) {
                 areUnreadMessages = true;
-                // Since unread message therefore date will be today unless a tag is found.
+                // Since unread message therefore date will be today unless a date tag is found.
+                //TODO: Consider scroll down
                 WhatsAppReadService.dateInCurrentScroll = new Date();
             }
             return null;
         }
 
+        setDateInCurrentScroll(groupView);
         boolean isMessageReceived = isMessageReceived(groupView);
         String timeText = getTimeText(groupView, isMessageReceived);
         String msgText = getMessageText(groupView, isMessageReceived);
-        setDateInCurrentScroll(groupView);
 
         // Ignoring if other views
         if (timeText.isEmpty() || msgText.isEmpty() || timeText.indexOf(':') == -1)

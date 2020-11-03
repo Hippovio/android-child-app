@@ -29,5 +29,5 @@ public interface ChateeDao {
     Chatee getWhatsappChateeForSender(String phoneNumber);
 
     @Query("SELECT * FROM " + CHATEE + " WHERE source= '" + INSTAGRAM + "' AND identifier= :instagramUsername")
-    List<Chatee> getInstagramChateeForSender(String instagramUsername);
+    Chatee getInstagramChateeForSender(String instagramUsername);
 }

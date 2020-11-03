@@ -9,7 +9,6 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.hippovio.child.database.MessageDatabaseHelper;
 import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
-import com.hippovio.child.hashing.HashingService;
 import com.hippovio.child.pojos.Message;
 import com.hippovio.child.services.messageRead.helpers.MessageHelper;
 
@@ -21,8 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-
-import io.reactivex.Observable;
 
 public abstract class MessageReadService {
 
@@ -148,7 +145,7 @@ public abstract class MessageReadService {
                 Message boundaryMessage = messages.get(boundaryIndex.first);
                 messages = messages.subList(boundaryIndex.first + 1, boundaryIndex.second);
                 messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
-                messageDatabaseHelper.uploadMessagesOnline(messages);
+                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
                 messageDatabaseHelper.deleteCheckpoint(checkpoint);
                 //TODO: merge next checkpoint if that also overlaps
@@ -157,7 +154,7 @@ public abstract class MessageReadService {
                 //messages after this index are of interest
                 messages = messages.subList(boundaryIndex.first + 1, messages.size());
                 messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
-                messageDatabaseHelper.uploadMessagesOnline(messages);
+                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
                 checkpoint.updateStartMessage(messages.get(messages.size() - 1));
                 messageDatabaseHelper.updateCheckpoint(checkpoint);
@@ -166,21 +163,21 @@ public abstract class MessageReadService {
                 //messages before this index are of interest
                 messages = messages.subList(0, boundaryIndex.second);
                 messages = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
-                messageDatabaseHelper.uploadMessagesOnline(messages);
+                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
                 checkpoint.updateEndMessage(messages.get(0));
                 messageDatabaseHelper.updateCheckpoint(checkpoint);
             } else {
                 // No Overlap Case.
-                MessageReadCheckpoint currentMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
+                MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
                         .startMessage(messagesWithDate.get(0))
                         .endMessage(messagesWithDate.get(messagesWithDate.size() - 1))
                         .build();
 
-                if(checkpoint.liesInBetween(currentMessageWindow)){
+                if(checkpoint.hasInBetweenIt(newMessageWindow)){
                     //Considering only messages with date.
                     messages = messagesWithDate;
-                    messageDatabaseHelper.uploadMessagesOnline(messages);
+                    messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
                     MessageReadCheckpoint newCheckpoint = checkpoint.clone();
                     newCheckpoint.updateStartMessage(messagesWithDate.get(messages.size() - 1));

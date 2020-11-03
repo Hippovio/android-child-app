@@ -6,7 +6,8 @@ package com.hippovio.child.enums;
  */
 public enum Sources {
     WHATSAPP("WHATSAPP"),
-    FACEBOOK("FACEBOOK");
+    FACEBOOK("FACEBOOK"),
+    INSTAGRAM("INSTAGRAM");
 
     private String source;
 

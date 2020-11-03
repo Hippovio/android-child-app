@@ -8,7 +8,7 @@ import androidx.room.TypeConverters;
 
 import com.hippovio.child.database.local.constants.TableName;
 import com.hippovio.child.database.local.typeConverters.DateConverter;
-import com.hippovio.child.database.local.typeConverters.syncStatusConverter;
+import com.hippovio.child.database.local.typeConverters.MessageSyncStatusConverter;
 import com.hippovio.child.enums.MessageSyncStates;
 
 import java.util.Date;
@@ -27,7 +27,7 @@ public class MessageSyncStatus {
     private String firebaseId;
 
     @ColumnInfo(name = "sync_state")
-    @TypeConverters({syncStatusConverter.class})
+    @TypeConverters({MessageSyncStatusConverter.class})
     private MessageSyncStates syncState;
 
     @ColumnInfo(name = "last_modified_time")

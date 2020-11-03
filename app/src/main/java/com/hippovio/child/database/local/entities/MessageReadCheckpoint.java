@@ -78,7 +78,7 @@ public class MessageReadCheckpoint {
         return messageReadCheckpoint;
     }
 
-    public boolean liesInBetween(MessageReadCheckpoint checkpoint){
+    public boolean hasInBetweenIt(MessageReadCheckpoint checkpoint){
         if (endMessageId == null && startMessageDate.before(checkpoint.getStartMessageDate()))
             return true;
         return checkpoint.getStartMessageDate().after(startMessageDate) && checkpoint.getEndMessageDate().before(endMessageDate);
