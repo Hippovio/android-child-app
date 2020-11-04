@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "208ed3f6b59628c6fe1e6a6092667ed0",
+    "identityHash": "b70c8b2a3fd426d61c24795564d012fb",
     "entities": [
       {
         "tableName": "MessageReadCheckpoints",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `chatee_id` TEXT NOT NULL, `message_source` INTEGER, `start_message_id` TEXT, `start_message_hash` TEXT, `start_message_date` TEXT, `end_message_id` TEXT NOT NULL, `end_message_hash` TEXT, `end_message_date` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `chatee_id` INTEGER NOT NULL, `message_source` INTEGER, `start_message_id` TEXT, `start_message_hash` TEXT, `start_message_date` TEXT, `end_message_id` TEXT NOT NULL, `end_message_hash` TEXT, `end_message_date` TEXT)",
         "fields": [
           {
             "fieldPath": "checkpointId",
@@ -17,7 +17,7 @@
           {
             "fieldPath": "chateeId",
             "columnName": "chatee_id",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -74,7 +74,7 @@
       },
       {
         "tableName": "Chatee",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `source` TEXT NOT NULL, `type` TEXT NOT NULL, `name` TEXT NOT NULL, `identifier` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `source` INTEGER NOT NULL, `type` TEXT NOT NULL, `name` TEXT NOT NULL, `identifier` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "chateeId",
@@ -85,7 +85,7 @@
           {
             "fieldPath": "chateeSource",
             "columnName": "source",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -118,7 +118,7 @@
       },
       {
         "tableName": "MessageSyncStatus",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`firebase_id` TEXT NOT NULL, `sync_state` INTEGER, `last_modified_time` TEXT, PRIMARY KEY(`firebase_id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`firebase_id` TEXT NOT NULL, `sync_state` INTEGER, `last_modified_time` TEXT, `created_datetime` TEXT, PRIMARY KEY(`firebase_id`))",
         "fields": [
           {
             "fieldPath": "firebaseId",
@@ -137,6 +137,12 @@
             "columnName": "last_modified_time",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "createdDatetime",
+            "columnName": "created_datetime",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -152,7 +158,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '208ed3f6b59628c6fe1e6a6092667ed0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b70c8b2a3fd426d61c24795564d012fb')"
     ]
   }
 }

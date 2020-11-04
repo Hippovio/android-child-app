@@ -40,34 +40,14 @@ public abstract class MessageReadService {
      * Reads and saves the chat in current window
      * @param accessibilityEvent
      */
-    protected void readChat(AccessibilityEvent accessibilityEvent) {
-        AccessibilityNodeInfo source = accessibilityEvent.getSource();
-
-        LinkedList<Message> messages = readMessages(source);
-
-        insertChat(messages);
-
-    }
+    protected  abstract void readChat(AccessibilityEvent accessibilityEvent);
 
     /**
      * Reads the messages in the window.
      * @param source
      * @return List of messages read
      */
-    protected LinkedList<Message> readMessages(AccessibilityNodeInfo source) {
-        LinkedList<Message> messages = new LinkedList<>();
-        if (source.getChildCount() > 0) {
-            for(int index = 0; index < source.getChildCount(); index++){
-                AccessibilityNodeInfo nodeInfo = source.getChild(index);
-                if(nodeInfo != null) {
-                    Message message = extractMessage(nodeInfo);
-                    if (message != null)
-                        messages.add(message);
-                }
-            }
-        }
-        return messages;
-    }
+    protected abstract LinkedList<Message> readMessages(AccessibilityNodeInfo source);
 
     /**
      * Extracts message from a view
@@ -81,7 +61,7 @@ public abstract class MessageReadService {
      * @param conversationRoot
      * @return chatee name.
      */
-    protected abstract void extractChatee(AccessibilityNodeInfoCompat conversationRoot);
+    protected abstract void extractChatee(AccessibilityNodeInfo conversationRoot);
 
     protected abstract boolean isMessageReceived(AccessibilityNodeInfo nodeInfo);
 
@@ -100,97 +80,12 @@ public abstract class MessageReadService {
      * @param dateString
      * @return {@link Date}
      */
-    protected Date getDate(String dateString) {
-        try{
-            if (dateString.equals("TODAY")) {
-                Calendar cal = Calendar.getInstance();
-                int year  = cal.get(Calendar.YEAR);
-                int month = cal.get(Calendar.MONTH);
-                int date  = cal.get(Calendar.DATE);
-                cal.clear();
-                cal.set(year, month, date);
-                return cal.getTime();
-            } else if (dateString.equals("YESTERDAY")) {
-                Calendar cal = Calendar.getInstance();
-                cal.add(Calendar.DATE, -1);
-                int year  = cal.get(Calendar.YEAR);
-                int month = cal.get(Calendar.MONTH);
-                int date  = cal.get(Calendar.DATE);
-                cal.clear();
-                cal.set(year, month, date);
-                return cal.getTime();
-            }
-            DateFormat format = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
-            Date date = format.parse(dateString);
-            return date;
-        }catch (Exception e) {}
-        return null;
-    }
+    protected abstract Date getDate(String dateString);
 
     /**
      * Finds the insertion point and saves messages and updates the checkpoints.
      * @param messages
      */
-    protected void insertChat(List<Message> messages) {
-        Log.d(LOG_TAG, "Received: " + messages);
-
-        List<Message> messagesWithDate = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
-        List<MessageReadCheckpoint> messageCheckpoints = messageDatabaseHelper.getLocalMessageBreakPointsForChatee(chatee);
-
-        for(MessageReadCheckpoint checkpoint : messageCheckpoints){
-
-            Pair<Integer, Integer> boundaryIndex = MessageHelper.findMessageOverlap(checkpoint, messages);
-
-            if (boundaryIndex.first != -1 && boundaryIndex.second != -1) {
-                Message boundaryMessage = messages.get(boundaryIndex.first);
-                messages = messages.subList(boundaryIndex.first + 1, boundaryIndex.second);
-                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
-                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                messageDatabaseHelper.deleteCheckpoint(checkpoint);
-                //TODO: merge next checkpoint if that also overlaps
-            } else if (boundaryIndex.first != -1) {
-                Message boundaryMessage = messages.get(boundaryIndex.first);
-                //messages after this index are of interest
-                messages = messages.subList(boundaryIndex.first + 1, messages.size());
-                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
-                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                checkpoint.updateStartMessage(messages.get(messages.size() - 1));
-                messageDatabaseHelper.updateCheckpoint(checkpoint);
-            } else if (boundaryIndex.second != -1){
-                Message boundaryMessage = messages.get(boundaryIndex.second);
-                //messages before this index are of interest
-                messages = messages.subList(0, boundaryIndex.second);
-                messages = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
-                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                checkpoint.updateEndMessage(messages.get(0));
-                messageDatabaseHelper.updateCheckpoint(checkpoint);
-            } else {
-                // No Overlap Case.
-                MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
-                        .startMessage(messagesWithDate.get(0))
-                        .endMessage(messagesWithDate.get(messagesWithDate.size() - 1))
-                        .build();
-
-                if(checkpoint.hasInBetweenIt(newMessageWindow)){
-                    //Considering only messages with date.
-                    messages = messagesWithDate;
-                    messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                    MessageReadCheckpoint newCheckpoint = checkpoint.clone();
-                    newCheckpoint.updateStartMessage(messagesWithDate.get(messages.size() - 1));
-
-                    checkpoint.updateEndMessage(messages.get(0));
-
-                    messageDatabaseHelper.updateAndCreateCheckpoint(checkpoint, newCheckpoint);
-                } else
-                    continue;
-            }
-            break;
-        }
-        Log.d(LOG_TAG, "Saved: " + messages);
-    }
+    protected abstract void insertChat(List<Message> messages);
 
 }

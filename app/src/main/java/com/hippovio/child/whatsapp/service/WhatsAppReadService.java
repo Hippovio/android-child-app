@@ -4,21 +4,29 @@ import android.content.Context;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
+import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
 import com.hippovio.child.services.messageRead.helpers.AccessibilityHelper;
 import com.hippovio.child.database.MessageDatabaseHelper;
 import com.hippovio.child.pojos.Message;
 import com.hippovio.child.services.messageRead.MessageReadService;
+import com.hippovio.child.services.messageRead.helpers.MessageHelper;
 import com.hippovio.child.whatsapp.Constants;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
 import static com.hippovio.child.enums.Sources.WHATSAPP;
 
 public class WhatsAppReadService extends MessageReadService {
@@ -43,15 +51,24 @@ public class WhatsAppReadService extends MessageReadService {
             readChat(accessibilityEvent);
 
         } else if (accessibilityEvent.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            AccessibilityNodeInfoCompat rootNode = AccessibilityHelper.getNodeInfo(rootInActiveWindow, Constants.editTextViewId);
+            AccessibilityNodeInfo rootNode = AccessibilityHelper.getNodeInfo(accessibilityEvent.getSource(), Constants.conversationContactNameId);
             if (rootNode == null) {
                 chatee = null;
                 return;
             }
-            //TODO: GET CHATTEE FROM PHONE NUMBER
+            extractChatee(rootNode);
             areUnreadMessages = false;
         } else
             return;
+    }
+
+    @Override
+    protected void readChat(AccessibilityEvent accessibilityEvent) {
+        AccessibilityNodeInfo source = accessibilityEvent.getSource();
+
+        LinkedList<Message> messages = readMessages(source);
+
+        insertChat(messages);
     }
 
     @Override
@@ -110,9 +127,9 @@ public class WhatsAppReadService extends MessageReadService {
     }
 
     @Override
-    protected void extractChatee(AccessibilityNodeInfoCompat conversationRoot) {
+    protected void extractChatee(AccessibilityNodeInfo conversationRoot) {
         try {
-            String chateeName =  (String) conversationRoot.getChild(1).getChild(0).getText();
+            String chateeName = conversationRoot.getText().toString();
 
             String phoneNumber = null;
             String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME+" like'%" + chateeName +"%'";
@@ -128,7 +145,14 @@ public class WhatsAppReadService extends MessageReadService {
             }
             else
                 chatee = messageDatabaseHelper.getLocalWhatsappChateeForSender(phoneNumber);
-        } catch (Exception e) {}
+
+            if(chatee == null){
+                //create new chatee
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean isUnreadTag(AccessibilityNodeInfo nodeInfo) {
@@ -152,5 +176,114 @@ public class WhatsAppReadService extends MessageReadService {
                 WhatsAppReadService.dateInCurrentScroll = date;
         } catch (Exception e){}
     }
+
+    @Override
+    protected Date getDate(String dateString) {
+        try{
+            if (dateString.equals("TODAY")) {
+                Calendar cal = Calendar.getInstance();
+                int year  = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH);
+                int date  = cal.get(Calendar.DATE);
+                cal.clear();
+                cal.set(year, month, date);
+                return cal.getTime();
+            } else if (dateString.equals("YESTERDAY")) {
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.DATE, -1);
+                int year  = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH);
+                int date  = cal.get(Calendar.DATE);
+                cal.clear();
+                cal.set(year, month, date);
+                return cal.getTime();
+            }
+            DateFormat format = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
+            Date date = format.parse(dateString);
+            return date;
+        }catch (Exception e) {}
+        return null;
+    }
+
+    @Override
+    protected void insertChat(List<Message> messages) {
+        Log.d(LOG_TAG, "Received: " + messages);
+
+        List<Message> messagesWithDate = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
+        List<MessageReadCheckpoint> messageCheckpoints = messageDatabaseHelper.getLocalMessageBreakPointsForChatee(chatee);
+
+        for(MessageReadCheckpoint checkpoint : messageCheckpoints){
+
+            Pair<Integer, Integer> boundaryIndex = MessageHelper.findMessageOverlap(checkpoint, messages);
+
+            if (boundaryIndex.first != -1 && boundaryIndex.second != -1) {
+                Message boundaryMessage = messages.get(boundaryIndex.first);
+                messages = messages.subList(boundaryIndex.first + 1, boundaryIndex.second);
+                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
+                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+
+                messageDatabaseHelper.deleteCheckpoint(checkpoint);
+                //TODO: merge next checkpoint if that also overlaps
+            } else if (boundaryIndex.first != -1) {
+                Message boundaryMessage = messages.get(boundaryIndex.first);
+                //messages after this index are of interest
+                messages = messages.subList(boundaryIndex.first + 1, messages.size());
+                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
+                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+
+                checkpoint.updateStartMessage(messages.get(messages.size() - 1));
+                messageDatabaseHelper.updateCheckpoint(checkpoint);
+            } else if (boundaryIndex.second != -1){
+                Message boundaryMessage = messages.get(boundaryIndex.second);
+                //messages before this index are of interest
+                messages = messages.subList(0, boundaryIndex.second);
+                messages = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
+                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+
+                checkpoint.updateEndMessage(messages.get(0));
+                messageDatabaseHelper.updateCheckpoint(checkpoint);
+            } else {
+                // No Overlap Case.
+                MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
+                        .startMessage(messagesWithDate.get(0))
+                        .endMessage(messagesWithDate.get(messagesWithDate.size() - 1))
+                        .build();
+
+                if(checkpoint.hasInBetweenIt(newMessageWindow)){
+                    //Considering only messages with date.
+                    messages = messagesWithDate;
+                    messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+
+                    MessageReadCheckpoint newCheckpoint = checkpoint.clone();
+                    newCheckpoint.updateStartMessage(messagesWithDate.get(messages.size() - 1));
+
+                    checkpoint.updateEndMessage(messages.get(0));
+
+                    messageDatabaseHelper.updateAndCreateCheckpoint(checkpoint, newCheckpoint);
+                } else
+                    continue;
+            }
+            break;
+        }
+        Log.d(LOG_TAG, "Saved: " + messages);
+    }
+
+    @Override
+    protected LinkedList<Message> readMessages(AccessibilityNodeInfo source) {
+        LinkedList<Message> messages = new LinkedList<>();
+        if (source.getChildCount() > 0) {
+            for(int index = 0; index < source.getChildCount(); index++){
+                AccessibilityNodeInfo nodeInfo = source.getChild(index);
+                if(nodeInfo != null) {
+                    Message message = extractMessage(nodeInfo);
+                    if (message != null)
+                        messages.add(message);
+                }
+            }
+        }
+        return messages;
+    }
+
+
 
 }
