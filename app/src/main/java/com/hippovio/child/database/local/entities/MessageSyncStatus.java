@@ -16,6 +16,8 @@ import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 
+//study performance of firebase
+
 @Getter
 @Setter
 @Entity(tableName = TableName.MESSAGE_SYNC_STATUS)
@@ -34,9 +36,14 @@ public class MessageSyncStatus {
     @TypeConverters({DateConverter.class})
     private Date lastModified;
 
-    public MessageSyncStatus(String firebaseId, MessageSyncStates syncState, Date lastModified) {
+    @ColumnInfo(name = "created_datetime")
+    @TypeConverters({DateConverter.class})
+    private Date createdDatetime;
+
+    public MessageSyncStatus(@NonNull String firebaseId, MessageSyncStates syncState, Date lastModified, Date createdDatetime) {
         this.firebaseId = firebaseId;
         this.syncState = syncState;
         this.lastModified = lastModified;
+        this.createdDatetime = createdDatetime;
     }
 }

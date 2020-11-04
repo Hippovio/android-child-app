@@ -66,7 +66,8 @@ public class MessageDatabaseHelper {
 
     public Message uploadMessageOnline(final Message message){
         message.setId(FirebaseHelper.generateId(FirebaseHelper.MESSAGES_COLLECTION));
-        localDb.messageSyncStatusDao().insertAll(new MessageSyncStatus(message.getId(), MessageSyncStates.NEW, new Date(System.currentTimeMillis())));
+        localDb.messageSyncStatusDao().insertAll(new MessageSyncStatus(message.getId(), MessageSyncStates.NEW,
+                new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis())));
         FirebaseHelper.saveMessage(message, new FirebaseServiceInterfaces.successfulOperationCallback() {
             @Override
             public void onSuccess() {
