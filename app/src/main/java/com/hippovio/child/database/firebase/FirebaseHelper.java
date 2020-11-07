@@ -19,7 +19,11 @@ public class FirebaseHelper {
             @Override
             public void onWriteCallBack(boolean writeSuccessful) {
                 Log.i("Firebase", "Message written");
-                successfulOperationCallback.onSuccess();
+                if (writeSuccessful) {
+                    successfulOperationCallback.onSuccess();
+                } else {
+                    successfulOperationCallback.onFailure();
+                }
             }
         });
     }

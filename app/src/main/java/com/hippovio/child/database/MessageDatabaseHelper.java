@@ -3,7 +3,6 @@ package com.hippovio.child.database;
 import android.content.Context;
 
 import androidx.room.Room;
-import androidx.room.Transaction;
 
 import com.hippovio.child.database.firebase.FirebaseHelper;
 import com.hippovio.child.database.firebase.FirebaseServiceInterfaces;
@@ -14,6 +13,7 @@ import com.hippovio.child.database.local.entities.MessageSyncStatus;
 import com.hippovio.child.enums.MessageSyncStates;
 import com.hippovio.child.pojos.Message;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -64,9 +64,10 @@ public class MessageDatabaseHelper {
         FirebaseHelper.checkConnectivity();
     }
 
-    public void uploadMessageOnline(final Message message){
+    public Message uploadMessageOnline(final Message message){
         message.setId(FirebaseHelper.generateId(FirebaseHelper.MESSAGES_COLLECTION));
-        localDb.messageSyncStatusDao().insertAll(new MessageSyncStatus(message.getId(), MessageSyncStates.NEW, new Date(System.currentTimeMillis())));
+        localDb.messageSyncStatusDao().insertAll(new MessageSyncStatus(message.getId(), MessageSyncStates.NEW,
+                new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis())));
         FirebaseHelper.saveMessage(message, new FirebaseServiceInterfaces.successfulOperationCallback() {
             @Override
             public void onSuccess() {
@@ -81,10 +82,13 @@ public class MessageDatabaseHelper {
 
             }
         });
+        return message;
     }
 
-    public void uploadMessagesOnline(final List<Message> messages){
-        messages.forEach(message -> uploadMessageOnline(message));
+    public List<Message> uploadMessagesOnline(final List<Message> messages){
+        List<Message> uploadedMessages = new ArrayList<>();
+        messages.forEach(message -> uploadedMessages.add(uploadMessageOnline(message)));
+        return uploadedMessages;
     }
 
 }

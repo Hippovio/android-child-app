@@ -8,13 +8,15 @@ import androidx.room.TypeConverters;
 
 import com.hippovio.child.database.local.constants.TableName;
 import com.hippovio.child.database.local.typeConverters.DateConverter;
-import com.hippovio.child.database.local.typeConverters.syncStatusConverter;
+import com.hippovio.child.database.local.typeConverters.MessageSyncStatusConverter;
 import com.hippovio.child.enums.MessageSyncStates;
 
 import java.util.Date;
 
 import lombok.Getter;
 import lombok.Setter;
+
+//study performance of firebase
 
 @Getter
 @Setter
@@ -27,16 +29,21 @@ public class MessageSyncStatus {
     private String firebaseId;
 
     @ColumnInfo(name = "sync_state")
-    @TypeConverters({syncStatusConverter.class})
+    @TypeConverters({MessageSyncStatusConverter.class})
     private MessageSyncStates syncState;
 
     @ColumnInfo(name = "last_modified_time")
     @TypeConverters({DateConverter.class})
     private Date lastModified;
 
-    public MessageSyncStatus(String firebaseId, MessageSyncStates syncState, Date lastModified) {
+    @ColumnInfo(name = "created_datetime")
+    @TypeConverters({DateConverter.class})
+    private Date createdDatetime;
+
+    public MessageSyncStatus(@NonNull String firebaseId, MessageSyncStates syncState, Date lastModified, Date createdDatetime) {
         this.firebaseId = firebaseId;
         this.syncState = syncState;
         this.lastModified = lastModified;
+        this.createdDatetime = createdDatetime;
     }
 }

@@ -5,7 +5,7 @@ import androidx.room.TypeConverter;
 import com.hippovio.child.enums.MessageSyncStates;
 
 
-public class syncStatusConverter {
+public class MessageSyncStatusConverter {
 
     @TypeConverter
     public static MessageSyncStates toSyncStatus(int value) {

@@ -12,7 +12,7 @@ import com.hippovio.child.whatsapp.service.WhatsAppReadService;
 public class ScreenReadService extends AccessibilityService {
 
     AccessibilityServiceInfo info = new AccessibilityServiceInfo();
-    private WhatsAppReadService whatsAppService = new WhatsAppReadService();
+    WhatsAppReadService whatsAppService = new WhatsAppReadService();
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {

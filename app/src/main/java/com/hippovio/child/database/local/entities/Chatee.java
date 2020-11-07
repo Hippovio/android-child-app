@@ -13,6 +13,11 @@ import com.hippovio.child.enums.Sources;
 import lombok.Getter;
 import lombok.Setter;
 
+/*
+ * Database entity for person whom the child is chatting with on current source
+ * The same human chattee will be different chattee records for different sources
+ */
+
 @Getter
 @Setter
 @Entity(tableName = TableName.CHATEE)

@@ -2,10 +2,8 @@ package com.hippovio.child.enums;
 
 public enum MessageSyncStates {
     NEW("NEW"),
-    UNREAD("UNREAD"),
     UPLOADED("UPLOADED"),
-    COMPLETE("COMPLETE"),
-    READ("READ");
+    COMPLETE("COMPLETE");
 
     MessageSyncStates(String syncState) {
         this.syncState = syncState;
