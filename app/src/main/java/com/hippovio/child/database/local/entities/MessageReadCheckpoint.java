@@ -40,6 +40,7 @@ public class MessageReadCheckpoint {
 
     @TypeConverters({SourceConverter.class})
     @ColumnInfo(name = "message_source")
+    @NonNull
     private Sources source;
 
     @ColumnInfo(name = "start_message_id")
@@ -50,10 +51,10 @@ public class MessageReadCheckpoint {
 
     @ColumnInfo(name = "start_message_date")
     @TypeConverters({DateConverter.class})
+    @NonNull
     private Date startMessageDate;
 
     @ColumnInfo(name = "end_message_id")
-    @NonNull
     private String endMessageId;
 
     @ColumnInfo(name = "end_message_hash")
