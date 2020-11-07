@@ -20,7 +20,10 @@ public interface ChateeDao {
     List<Chatee> getAll();
 
     @Insert
-    void insertAll(Chatee... chatees);
+    List<Long> insertAll(Chatee... chatees);
+
+    @Insert
+    Long insert(Chatee chatees);
 
     @Delete
     void delete(Chatee chatee);

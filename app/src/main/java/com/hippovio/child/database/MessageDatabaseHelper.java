@@ -14,6 +14,7 @@ import com.hippovio.child.enums.MessageSyncStates;
 import com.hippovio.child.pojos.Message;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +39,17 @@ public class MessageDatabaseHelper {
     public Chatee getLocalWhatsappChateeForSender(String phoneNumber){
         return localDb.chateeDao().getWhatsappChateeForSender(phoneNumber);
     }
+
+    public void createAndSaveNewChattee(Chatee newChatee){
+        Long insertedChatteeId = localDb.chateeDao().insert(newChatee);
+        MessageReadCheckpoint newChatteeMessageCheckpoint = new MessageReadCheckpoint();
+        newChatteeMessageCheckpoint.setChateeId(insertedChatteeId);
+        Calendar startMessageDate = Calendar.getInstance();
+        startMessageDate.add(Calendar.DAY_OF_MONTH, -7);
+        newChatteeMessageCheckpoint.setStartMessageDate(startMessageDate.getTime());
+        localDb.messageCheckpointsDao().insertAll(newChatteeMessageCheckpoint);
+    }
+
 
     public List<MessageReadCheckpoint> getLocalMessageBreakPointsForChatee(Chatee chatee){
         return localDb.messageCheckpointsDao().getCheckpointsForChateeIdOrderedByLatest(chatee.getChateeId().toString());
