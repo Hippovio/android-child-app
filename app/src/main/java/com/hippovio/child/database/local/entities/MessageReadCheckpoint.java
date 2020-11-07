@@ -36,7 +36,7 @@ public class MessageReadCheckpoint {
 
     @ColumnInfo(name = "chatee_id")
     @NonNull
-    private int chateeId;
+    private Long chateeId;
 
     @TypeConverters({SourceConverter.class})
     @ColumnInfo(name = "message_source")

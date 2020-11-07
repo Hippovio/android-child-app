@@ -7,7 +7,9 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
 import com.hippovio.child.database.local.constants.TableName;
+import com.hippovio.child.database.local.typeConverters.ChateeTypeConverter;
 import com.hippovio.child.database.local.typeConverters.SourceConverter;
+import com.hippovio.child.enums.ChateeTypes;
 import com.hippovio.child.enums.Sources;
 
 import lombok.Getter;
@@ -25,7 +27,7 @@ public class Chatee {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
-    private Integer chateeId;
+    private Long chateeId;
 
     @ColumnInfo(name = "source")
     @NonNull
@@ -34,7 +36,8 @@ public class Chatee {
 
     @ColumnInfo(name = "type")
     @NonNull
-    private String chateeType;
+    @TypeConverters({ChateeTypeConverter.class})
+    private ChateeTypes chateeType;
 
     @ColumnInfo(name = "name")
     @NonNull
@@ -44,4 +47,10 @@ public class Chatee {
     @NonNull
     private String chateeIdentifier;
 
+    public Chatee(@NonNull Sources chateeSource, @NonNull ChateeTypes chateeType, @NonNull String chateeName, @NonNull String chateeIdentifier) {
+        this.chateeSource = chateeSource;
+        this.chateeType = chateeType;
+        this.chateeName = chateeName;
+        this.chateeIdentifier = chateeIdentifier;
+    }
 }

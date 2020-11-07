@@ -9,6 +9,8 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
+import com.hippovio.child.AppUtil;
+import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
 import com.hippovio.child.services.messageRead.helpers.AccessibilityHelper;
 import com.hippovio.child.database.MessageDatabaseHelper;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static com.hippovio.child.enums.ChateeTypes.INDIVIDUAL;
 import static com.hippovio.child.enums.Sources.WHATSAPP;
 
 public class WhatsAppReadService extends MessageReadService {
@@ -140,6 +143,7 @@ public class WhatsAppReadService extends MessageReadService {
                 phoneNumber = c.getString(0);
             }
             c.close();
+            phoneNumber = phoneNumber == null ? null : AppUtil.getPlainPhoneNumber(phoneNumber);
             if(phoneNumber == null) {
                 Log.i(LOG_TAG, "Chatee Number not found");
             }
@@ -147,7 +151,9 @@ public class WhatsAppReadService extends MessageReadService {
                 chatee = messageDatabaseHelper.getLocalWhatsappChateeForSender(phoneNumber);
 
             if(chatee == null){
-                //create new chatee
+                Chatee newChatee = new Chatee(WHATSAPP, INDIVIDUAL, chateeName, phoneNumber);
+                messageDatabaseHelper.createAndSaveNewChattee(newChatee);
+                chatee = newChatee;
             }
 
         } catch (Exception e) {
