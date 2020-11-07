@@ -171,6 +171,7 @@ public class WhatsAppReadService extends MessageReadService {
                     }
                     else {
                         throwable.printStackTrace();
+
                     }
                 });
             }
