@@ -4,7 +4,7 @@ android {
     compileSdkVersion 29
 
     defaultConfig {
-        applicationId "com.hippovio.screenread"
+        applicationId "com.hippovio.child"
         minSdkVersion 24
         targetSdkVersion 26
         versionCode 1
@@ -70,3 +70,5 @@ dependencies {
     implementation 'com.google.firebase:firebase-perf:19.0.7'
     implementation 'com.firebaseui:firebase-ui-firestore:5.0.0'
 }
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'

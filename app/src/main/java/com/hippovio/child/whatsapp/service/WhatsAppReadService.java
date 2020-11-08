@@ -268,7 +268,7 @@ public class WhatsAppReadService extends MessageReadService {
 
                 checkpoint.updateEndMessage(messages.get(0));
                 messageDatabaseHelper.updateCheckpoint(checkpoint);
-            } else {
+            } else if (messagesWithDate.size() > 0){
                 // No Overlap Case.
                 MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
                         .startMessage(messagesWithDate.get(0))

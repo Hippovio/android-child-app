@@ -90,10 +90,14 @@ public class MessageDatabaseHelper {
         FirebaseHelper.saveMessage(message, new FirebaseServiceInterfaces.successfulOperationCallback() {
             @Override
             public void onSuccess() {
-                MessageSyncStatus currentMessageSyncStatus = localDb.messageSyncStatusDao().getMessageSycnStatus(message.getId());
-                currentMessageSyncStatus.setSyncState(MessageSyncStates.UPLOADED);
-                currentMessageSyncStatus.setLastModified(new Date(System.currentTimeMillis()));
-                localDb.messageSyncStatusDao().updateMessageSyncStatus(currentMessageSyncStatus);
+                new Thread(() -> {
+                    MessageSyncStatus currentMessageSyncStatus = localDb.messageSyncStatusDao().getMessageSycnStatus(message.getId());
+                    currentMessageSyncStatus.setSyncState(MessageSyncStates.UPLOADED);
+                    currentMessageSyncStatus.setLastModified(new Date(System.currentTimeMillis()));
+                    new Thread(() -> {
+                        localDb.messageSyncStatusDao().updateMessageSyncStatus(currentMessageSyncStatus);
+                    }).start();
+                }).start();
             }
 
             @Override
