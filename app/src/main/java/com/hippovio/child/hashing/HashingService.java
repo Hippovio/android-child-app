@@ -1,12 +1,8 @@
 package com.hippovio.child.hashing;
 
-import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.pojos.Message;
-
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class HashingService {

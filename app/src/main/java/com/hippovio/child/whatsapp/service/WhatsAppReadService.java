@@ -90,15 +90,16 @@ public class WhatsAppReadService extends MessageReadService {
 
         setDateInCurrentScroll(groupView);
         boolean isMessageReceived = isMessageReceived(groupView);
-        String timeText = getTimeText(groupView, isMessageReceived);
         String msgText = getMessageText(groupView, isMessageReceived);
 
+        Long timeInDayMillies = getTimeInDayMillies(groupView, isMessageReceived);
+
         // Ignoring if other views
-        if (timeText.isEmpty() || msgText.isEmpty() || timeText.indexOf(':') == -1)
+        if (msgText.isEmpty() || timeInDayMillies == null)
             return null;
 
         return Message.MessageBuilder().chatee(chatee).msg(msgText).isReceived(isMessageReceived)
-                .timeText(timeText).date(WhatsAppReadService.dateInCurrentScroll).isUnread(areUnreadMessages).build();
+                .timeInDayMillies(timeInDayMillies).date(WhatsAppReadService.dateInCurrentScroll).isUnread(areUnreadMessages).build();
     }
 
     @Override
@@ -290,6 +291,28 @@ public class WhatsAppReadService extends MessageReadService {
         return messages;
     }
 
+    private Long getTimeInDayMillies(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
+        try{
+            String timeText = (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 1).getText() : nodeInfo.getChild(nodeInfo.getChildCount() - 2).getText()).toString();
+            if (timeText.isEmpty() || timeText.indexOf(':') == -1)
+                return null;
 
+            boolean is24HourFormat = android.text.format.DateFormat.is24HourFormat(context);
 
+            int hrs = Integer.parseInt(timeText.substring(0, timeText.indexOf(':')));
+            int mins = Integer.parseInt(is24HourFormat ?
+                    timeText.substring(timeText.indexOf(':') + 1)
+                    : timeText.substring(timeText.indexOf(':') + 1, timeText.indexOf(" ")));
+
+            Long time =  (hrs * 3600000L) + (mins * 60000L);
+            if (!is24HourFormat) {
+                boolean isPm = timeText.substring(timeText.indexOf(" ") + 1).equalsIgnoreCase("pm");
+                if (isPm)
+                    time += 12 * 60 * 60 * 1000;
+            }
+            return time;
+
+        }catch (Exception e) {}
+        return null;
+    }
 }

@@ -1,25 +1,15 @@
 package com.hippovio.child.services.messageRead;
 
 import android.content.Context;
-import android.util.Log;
-import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.hippovio.child.database.MessageDatabaseHelper;
 import com.hippovio.child.database.local.entities.Chatee;
-import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
 import com.hippovio.child.pojos.Message;
-import com.hippovio.child.services.messageRead.helpers.MessageHelper;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 public abstract class MessageReadService {
 
