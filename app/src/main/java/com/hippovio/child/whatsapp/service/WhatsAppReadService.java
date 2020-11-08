@@ -127,7 +127,7 @@ public class WhatsAppReadService extends MessageReadService {
 
             if(chatee == null){
                 Chatee newChatee = new Chatee(WHATSAPP, INDIVIDUAL, chateeName, phoneNumber);
-                //messageDatabaseHelper.createAndSaveNewChattee(newChatee);
+                messageDatabaseHelper.createAndSaveNewChattee(newChatee);
                 chatee = newChatee;
             }
 
