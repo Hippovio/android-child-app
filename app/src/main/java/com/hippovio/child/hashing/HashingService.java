@@ -15,8 +15,7 @@ public class HashingService {
 
         List<String> hashEntries = new ArrayList<>();
         hashEntries.add(message.getChatee().getChateeId().toString());
-        //hashEntries.add(Long.toString(message.getDate().getTime()));
-        hashEntries.add(message.getTimeText());
+        hashEntries.add(message.getTimeInDayMillies().toString());
         hashEntries.add(message.getMsg());
         hashEntries.add(message.getIsReceived().toString());
         return StringUtils.join(hashEntries, "-");
