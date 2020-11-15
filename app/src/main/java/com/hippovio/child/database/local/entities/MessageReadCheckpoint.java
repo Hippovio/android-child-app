@@ -69,10 +69,10 @@ public class MessageReadCheckpoint {
         MessageReadCheckpoint messageReadCheckpoint = new MessageReadCheckpoint();
         messageReadCheckpoint.startMessageId = startMessage.getId();
         messageReadCheckpoint.startMessageHash = startMessage.getMessageHash();
-        messageReadCheckpoint.startMessageDate = startMessage.getDate();
+        messageReadCheckpoint.startMessageDate = startMessage.getDateTime();
         messageReadCheckpoint.endMessageId = endMessage.getId();
         messageReadCheckpoint.endMessageHash = endMessage.getMessageHash();
-        messageReadCheckpoint.endMessageDate = endMessage.getDate();
+        messageReadCheckpoint.endMessageDate = endMessage.getDateTime();
         messageReadCheckpoint.chateeId = startMessage.getChatee().getChateeId();
         messageReadCheckpoint.source = startMessage.getChatee().getChateeSource();
 
@@ -88,13 +88,13 @@ public class MessageReadCheckpoint {
     public void updateStartMessage(Message startMessage) {
         startMessageId = startMessage.getId();
         startMessageHash = startMessage.getMessageHash();
-        startMessageDate = startMessage.getDate();
+        startMessageDate = startMessage.getDateTime();
     }
 
     public void updateEndMessage(Message endMessage) {
         endMessageId = endMessage.getId();
         endMessageHash = endMessage.getMessageHash();
-        endMessageDate = endMessage.getDate();
+        endMessageDate = endMessage.getDateTime();
     }
 
     @Override

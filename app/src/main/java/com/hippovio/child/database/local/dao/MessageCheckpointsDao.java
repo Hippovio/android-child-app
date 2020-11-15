@@ -25,7 +25,7 @@ public abstract class MessageCheckpointsDao {
     public abstract List<MessageReadCheckpoint> getAll();
 
     @Insert
-    public abstract Single<List<Long>> insertAll(MessageReadCheckpoint... checkpoints);
+    public abstract List<Long> insertAll(MessageReadCheckpoint... checkpoints);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void updateMessageReadCheckpoint(MessageReadCheckpoint messageReadCheckpoint);

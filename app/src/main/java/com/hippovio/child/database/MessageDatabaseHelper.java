@@ -1,10 +1,7 @@
 package com.hippovio.child.database;
 
 import android.content.Context;
-
 import androidx.room.Room;
-
-import com.hippovio.child.database.callbacks.DatabaseCallbacks;
 import com.hippovio.child.database.firebase.FirebaseHelper;
 import com.hippovio.child.database.firebase.FirebaseServiceInterfaces;
 import com.hippovio.child.database.local.HippovioDatabase;
@@ -20,17 +17,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import io.reactivex.functions.Consumer;
-
 /**
  * Database helper for offline/online messages.
  */
 public class MessageDatabaseHelper {
 
     HippovioDatabase localDb;
-
-    public MessageDatabaseHelper() {
-    }
 
     public MessageDatabaseHelper(Context context) {
         localDb = Room.databaseBuilder(context, HippovioDatabase.class, "database-name").build();
@@ -40,21 +32,29 @@ public class MessageDatabaseHelper {
      * LOCAL DB METHODS
      */
 
-    public void getLocalWhatsappChateeForSender(String phoneNumber, Consumer<Chatee> onSuccessCallback, Consumer<Throwable> onErrorCallback){
-        new AsyncHelper<Chatee>().asyncForSingle(localDb.chateeDao().getWhatsappChateeForSender(phoneNumber), onSuccessCallback, onErrorCallback);
+    public void getLocalWhatsappChateeForSender(String phoneNumber, AsyncHelper.CallBack<Chatee> chateeCallBack){
+        new AsyncHelper<Chatee>().asyncForSingle(localDb.chateeDao().getWhatsappChateeForSender(phoneNumber), chateeCallBack);
     }
 
-    public void createAndSaveNewChattee(Chatee newChatee, DatabaseCallbacks.chateeIdCallback chateeIdCallback){
-        new AsyncHelper<Long>().asyncForSingle(localDb.chateeDao().insert(newChatee), insertedChatteeId -> {
-            MessageReadCheckpoint newChatteeMessageCheckpoint = new MessageReadCheckpoint();
-            newChatteeMessageCheckpoint.setChateeId(insertedChatteeId);
-            newChatteeMessageCheckpoint.setSource(newChatee.getChateeSource());
-            Calendar startMessageDate = Calendar.getInstance();
-            startMessageDate.add(Calendar.DAY_OF_MONTH, -7);
-            newChatteeMessageCheckpoint.setStartMessageDate(startMessageDate.getTime());
-            new AsyncHelper<List<Long>>().asyncForSingle(localDb.messageCheckpointsDao().insertAll(newChatteeMessageCheckpoint), insertedCheckpointIds -> {});
-            chateeIdCallback.onChateeId(insertedChatteeId);
-        });
+    public void createAndSaveNewChattee(Chatee newChatee, AsyncHelper.CallBack<Long> chateeIdCallback){
+        new AsyncHelper<Long>().asyncForSingle(localDb.chateeDao().insert(newChatee), new AsyncHelper.CallBack<Long>() {
+                    @Override
+                    public void onSuccess(Long insertedChatteeId) {
+                        chateeIdCallback.onSuccess(insertedChatteeId);
+
+                        MessageReadCheckpoint newChatteeMessageCheckpoint = new MessageReadCheckpoint();
+                        newChatteeMessageCheckpoint.setChateeId(insertedChatteeId);
+                        newChatteeMessageCheckpoint.setSource(newChatee.getChateeSource());
+                        Calendar startMessageDate = Calendar.getInstance();
+                        startMessageDate.add(Calendar.DAY_OF_MONTH, -7);
+                        newChatteeMessageCheckpoint.setStartMessageDate(startMessageDate.getTime());
+
+                        new Thread(() -> localDb.messageCheckpointsDao().insertAll(newChatteeMessageCheckpoint)).start();
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {}
+                });
     }
 
 
