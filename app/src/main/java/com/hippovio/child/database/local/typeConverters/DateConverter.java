@@ -28,6 +28,6 @@ public class DateConverter {
 
     @TypeConverter
     public static String dateToTimestamp(Date date) {
-        return df.format(date);
+        return date == null ? null : df.format(date);
     }
 }

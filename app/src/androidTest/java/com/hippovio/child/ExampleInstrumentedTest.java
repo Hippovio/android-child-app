@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under accessibility_service_config.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.hippovio.screenread", appContext.getPackageName());
+        assertEquals("com.hippovio.child", appContext.getPackageName());
     }
 }

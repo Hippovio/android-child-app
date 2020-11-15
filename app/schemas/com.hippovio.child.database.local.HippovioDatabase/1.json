@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b70c8b2a3fd426d61c24795564d012fb",
+    "identityHash": "88d2c740eb0cb91bf960b0349a0e2c7a",
     "entities": [
       {
         "tableName": "MessageReadCheckpoints",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `chatee_id` INTEGER NOT NULL, `message_source` INTEGER, `start_message_id` TEXT, `start_message_hash` TEXT, `start_message_date` TEXT, `end_message_id` TEXT NOT NULL, `end_message_hash` TEXT, `end_message_date` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `chatee_id` INTEGER NOT NULL, `message_source` INTEGER NOT NULL, `start_message_id` TEXT, `start_message_hash` TEXT, `start_message_date` TEXT NOT NULL, `end_message_id` TEXT, `end_message_hash` TEXT, `end_message_date` TEXT)",
         "fields": [
           {
             "fieldPath": "checkpointId",
@@ -24,7 +24,7 @@
             "fieldPath": "source",
             "columnName": "message_source",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "startMessageId",
@@ -42,13 +42,13 @@
             "fieldPath": "startMessageDate",
             "columnName": "start_message_date",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "endMessageId",
             "columnName": "end_message_id",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "endMessageHash",
@@ -74,7 +74,7 @@
       },
       {
         "tableName": "Chatee",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `source` INTEGER NOT NULL, `type` TEXT NOT NULL, `name` TEXT NOT NULL, `identifier` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `source` INTEGER NOT NULL, `type` INTEGER NOT NULL, `name` TEXT NOT NULL, `identifier` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "chateeId",
@@ -91,7 +91,7 @@
           {
             "fieldPath": "chateeType",
             "columnName": "type",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -158,7 +158,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b70c8b2a3fd426d61c24795564d012fb')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '88d2c740eb0cb91bf960b0349a0e2c7a')"
     ]
   }
 }

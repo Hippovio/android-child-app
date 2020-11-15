@@ -8,8 +8,10 @@ import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.room.EmptyResultSetException;
 
 import com.hippovio.child.AppUtil;
+import com.hippovio.child.database.callbacks.DatabaseCallbacks;
 import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
 import com.hippovio.child.services.messageRead.helpers.AccessibilityHelper;
@@ -71,7 +73,9 @@ public class WhatsAppReadService extends MessageReadService {
 
         LinkedList<Message> messages = readMessages(source);
 
-        insertChat(messages);
+        new Thread(() -> {
+            insertChat(messages);
+        }).start();
     }
 
     @Override
@@ -147,13 +151,29 @@ public class WhatsAppReadService extends MessageReadService {
             if(phoneNumber == null) {
                 Log.i(LOG_TAG, "Chatee Number not found");
             }
-            else
-                chatee = messageDatabaseHelper.getLocalWhatsappChateeForSender(phoneNumber);
+            else {
+                String finalPhoneNumber = phoneNumber;
+                messageDatabaseHelper.getLocalWhatsappChateeForSender(phoneNumber, chateeRetrieved -> {
+                    chatee = chateeRetrieved;
+                    if(chatee == null){
 
-            if(chatee == null){
-                Chatee newChatee = new Chatee(WHATSAPP, INDIVIDUAL, chateeName, phoneNumber);
-                messageDatabaseHelper.createAndSaveNewChattee(newChatee);
-                chatee = newChatee;
+                    }
+                }, throwable -> {
+                    if(throwable instanceof EmptyResultSetException){
+                        final Chatee newChatee = new Chatee(WHATSAPP, INDIVIDUAL, chateeName, finalPhoneNumber);
+                        messageDatabaseHelper.createAndSaveNewChattee(newChatee, new DatabaseCallbacks.chateeIdCallback() {
+                            @Override
+                            public void onChateeId(Long chateeId) {
+                                newChatee.setChateeId(chateeId);
+                                chatee = newChatee;
+                            }
+                        });
+                    }
+                    else {
+                        throwable.printStackTrace();
+
+                    }
+                });
             }
 
         } catch (Exception e) {
@@ -248,7 +268,7 @@ public class WhatsAppReadService extends MessageReadService {
 
                 checkpoint.updateEndMessage(messages.get(0));
                 messageDatabaseHelper.updateCheckpoint(checkpoint);
-            } else {
+            } else if (messagesWithDate.size() > 0){
                 // No Overlap Case.
                 MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
                         .startMessage(messagesWithDate.get(0))
