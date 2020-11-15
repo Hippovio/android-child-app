@@ -64,9 +64,7 @@ public class Message {
     public void setDate(Date date) {
         if (date == null)
             return;
-        try{
-            dateTime = new Date(date.getTime() + timeInDayMillies);
-        } catch (Exception e) {}
+        dateTime = new Date(date.getTime() + timeInDayMillies);
     }
 
     public Date getDate() {

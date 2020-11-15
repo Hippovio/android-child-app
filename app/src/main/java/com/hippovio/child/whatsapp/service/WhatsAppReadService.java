@@ -34,9 +34,11 @@ import static com.hippovio.child.enums.Sources.WHATSAPP;
 
 public class WhatsAppReadService extends MessageReadService {
 
-    private static Date dateInCurrentScroll = null;
+    private Date dateInCurrentScroll = null;
     private boolean areUnreadMessages = false;
-
+    private int lastToIndex = -1;
+    private int lastFromIndex = -1;
+    private int offset = 0;
 
     public WhatsAppReadService() {
         LOG_TAG = WHATSAPP.value();
@@ -48,8 +50,9 @@ public class WhatsAppReadService extends MessageReadService {
         this.context = context;
         messageDatabaseHelper = new MessageDatabaseHelper(context);
 
-        if (accessibilityEvent.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
-            if (chatee == null)
+        if (accessibilityEvent.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                && Constants.conversationListViewId.equals(accessibilityEvent.getSource().getViewIdResourceName())) {
+            if (debounceScrollEvents(accessibilityEvent) || chatee == null)
                 return;
             readChat(accessibilityEvent);
 
@@ -57,18 +60,36 @@ public class WhatsAppReadService extends MessageReadService {
             AccessibilityNodeInfo rootNode = AccessibilityHelper.getNodeInfo(accessibilityEvent.getSource(), Constants.conversationContactNameId);
             if (rootNode == null) {
                 chatee = null;
+                lastToIndex = -1;
+                lastFromIndex = -1;
+                offset = 0;
                 return;
             }
-            extractChatee(rootNode);
+            //extractChatee(rootNode);
+            chatee = new Chatee(WHATSAPP, INDIVIDUAL, "RAGHAV", "jbajkfda");
             areUnreadMessages = false;
-        } else
-            return;
+        }
+    }
+
+    /**
+     * Func. to decide whether to ignore duplicate events of scroll.
+     * @param event Accessibility events
+     * @return true, if we want to ignore.
+     */
+    private boolean debounceScrollEvents(AccessibilityEvent event) {
+        int toIndex = event.getToIndex(), fromIndex = event.getFromIndex();
+        if (toIndex != lastToIndex && fromIndex != lastFromIndex) {
+            getScroll(event);
+            lastFromIndex = fromIndex;
+            lastToIndex = toIndex;
+            return false;
+        }
+        return true;
     }
 
     @Override
     protected void readChat(AccessibilityEvent accessibilityEvent) {
         AccessibilityNodeInfo source = accessibilityEvent.getSource();
-
         LinkedList<Message> messages = readMessages(source);
 
         insertChat(messages);
@@ -83,7 +104,7 @@ public class WhatsAppReadService extends MessageReadService {
                 areUnreadMessages = true;
                 // Since unread message therefore date will be today unless a date tag is found.
                 //TODO: Consider scroll down
-                WhatsAppReadService.dateInCurrentScroll = new Date();
+                dateInCurrentScroll = new Date();
             }
             return null;
         }
@@ -95,39 +116,40 @@ public class WhatsAppReadService extends MessageReadService {
         Long timeInDayMillies = getTimeInDayMillies(groupView, isMessageReceived);
 
         // Ignoring if other views
-        if (msgText.isEmpty() || timeInDayMillies == null)
+        if (msgText == null || msgText.isEmpty() || timeInDayMillies == null)
             return null;
 
         return Message.MessageBuilder().chatee(chatee).msg(msgText).isReceived(isMessageReceived)
-                .timeInDayMillies(timeInDayMillies).date(WhatsAppReadService.dateInCurrentScroll).isUnread(areUnreadMessages).build();
+                .timeInDayMillies(timeInDayMillies).date(dateInCurrentScroll).isUnread(areUnreadMessages).build();
     }
 
     @Override
     protected boolean isMessageReceived(AccessibilityNodeInfo nodeInfo) {
-        final String[] sentMessageDesciption = {"Delivered", "Read", "Sent"};
         try{
-            return Arrays.binarySearch(sentMessageDesciption, nodeInfo.getChild(nodeInfo.getChildCount() - 1).getContentDescription().toString()) == -1;
-        } catch (Exception e) {
-            return true;
-        }
+            if (Constants.messageStatusId.equals(nodeInfo.getChild(nodeInfo.getChildCount() - 1).getViewIdResourceName()))
+                return Arrays.binarySearch(Constants.sentMessageDesciption, nodeInfo.getChild(nodeInfo.getChildCount() - 1).getContentDescription().toString()) == -1;
+        } catch (Exception e) {}
+        return true;
     }
 
     @Override
     protected String getMessageText(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
         try{
-            return (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 2).getText().toString() : nodeInfo.getChild(nodeInfo.getChildCount() - 3).getText().toString());
-        }catch (Exception e) {
-            return "";
-        }
+            AccessibilityNodeInfo messageNode = (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 2) : nodeInfo.getChild(nodeInfo.getChildCount() - 3));
+            if (Constants.messageTextId.equals(messageNode.getViewIdResourceName()))
+                return messageNode.getText().toString();
+        }catch (Exception e) {}
+        return null;
     }
 
     @Override
     protected String getTimeText(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
         try{
-            return (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 1).getText() : nodeInfo.getChild(nodeInfo.getChildCount() - 2).getText()).toString();
-        }catch (Exception e) {
-            return "";
-        }
+            AccessibilityNodeInfo timeNode = (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 1) : nodeInfo.getChild(nodeInfo.getChildCount() - 2));
+            if (Constants.messageDateId.equals(timeNode.getViewIdResourceName()))
+                return timeNode.getText().toString();
+        }catch (Exception e) {}
+        return null;
     }
 
     @Override
@@ -180,7 +202,7 @@ public class WhatsAppReadService extends MessageReadService {
         try{
             Date date = getDate(nodeInfo.getChild(0).getText().toString());
             if (date != null)
-                WhatsAppReadService.dateInCurrentScroll = date;
+                dateInCurrentScroll = date;
         } catch (Exception e){}
     }
 
@@ -217,61 +239,61 @@ public class WhatsAppReadService extends MessageReadService {
         Log.d(LOG_TAG, "Received: " + messages);
 
         List<Message> messagesWithDate = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
-        List<MessageReadCheckpoint> messageCheckpoints = messageDatabaseHelper.getLocalMessageBreakPointsForChatee(chatee);
+//        List<MessageReadCheckpoint> messageCheckpoints = messageDatabaseHelper.getLocalMessageBreakPointsForChatee(chatee);
 
-        for(MessageReadCheckpoint checkpoint : messageCheckpoints){
-
-            Pair<Integer, Integer> boundaryIndex = MessageHelper.findMessageOverlap(checkpoint, messages);
-
-            if (boundaryIndex.first != -1 && boundaryIndex.second != -1) {
-                Message boundaryMessage = messages.get(boundaryIndex.first);
-                messages = messages.subList(boundaryIndex.first + 1, boundaryIndex.second);
-                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
-                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                messageDatabaseHelper.deleteCheckpoint(checkpoint);
-                //TODO: merge next checkpoint if that also overlaps
-            } else if (boundaryIndex.first != -1) {
-                Message boundaryMessage = messages.get(boundaryIndex.first);
-                //messages after this index are of interest
-                messages = messages.subList(boundaryIndex.first + 1, messages.size());
-                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
-                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                checkpoint.updateStartMessage(messages.get(messages.size() - 1));
-                messageDatabaseHelper.updateCheckpoint(checkpoint);
-            } else if (boundaryIndex.second != -1){
-                Message boundaryMessage = messages.get(boundaryIndex.second);
-                //messages before this index are of interest
-                messages = messages.subList(0, boundaryIndex.second);
-                messages = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
-                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                checkpoint.updateEndMessage(messages.get(0));
-                messageDatabaseHelper.updateCheckpoint(checkpoint);
-            } else {
-                // No Overlap Case.
-                MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
-                        .startMessage(messagesWithDate.get(0))
-                        .endMessage(messagesWithDate.get(messagesWithDate.size() - 1))
-                        .build();
-
-                if(checkpoint.hasInBetweenIt(newMessageWindow)){
-                    //Considering only messages with date.
-                    messages = messagesWithDate;
-                    messages = messageDatabaseHelper.uploadMessagesOnline(messages);
-
-                    MessageReadCheckpoint newCheckpoint = checkpoint.clone();
-                    newCheckpoint.updateStartMessage(messagesWithDate.get(messages.size() - 1));
-
-                    checkpoint.updateEndMessage(messages.get(0));
-
-                    messageDatabaseHelper.updateAndCreateCheckpoint(checkpoint, newCheckpoint);
-                } else
-                    continue;
-            }
-            break;
-        }
+//        for(MessageReadCheckpoint checkpoint : messageCheckpoints){
+//
+//            Pair<Integer, Integer> boundaryIndex = MessageHelper.findMessageOverlap(checkpoint, messages);
+//
+//            if (boundaryIndex.first != -1 && boundaryIndex.second != -1) {
+//                Message boundaryMessage = messages.get(boundaryIndex.first);
+//                messages = messages.subList(boundaryIndex.first + 1, boundaryIndex.second);
+//                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
+//                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+//
+//                messageDatabaseHelper.deleteCheckpoint(checkpoint);
+//                //TODO: merge next checkpoint if that also overlaps
+//            } else if (boundaryIndex.first != -1) {
+//                Message boundaryMessage = messages.get(boundaryIndex.first);
+//                //messages after this index are of interest
+//                messages = messages.subList(boundaryIndex.first + 1, messages.size());
+//                messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
+//                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+//
+//                checkpoint.updateStartMessage(messages.get(messages.size() - 1));
+//                messageDatabaseHelper.updateCheckpoint(checkpoint);
+//            } else if (boundaryIndex.second != -1){
+//                Message boundaryMessage = messages.get(boundaryIndex.second);
+//                //messages before this index are of interest
+//                messages = messages.subList(0, boundaryIndex.second);
+//                messages = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
+//                messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+//
+//                checkpoint.updateEndMessage(messages.get(0));
+//                messageDatabaseHelper.updateCheckpoint(checkpoint);
+//            } else {
+//                // No Overlap Case.
+//                MessageReadCheckpoint newMessageWindow = MessageReadCheckpoint.MessageCheckpointsBuilder()
+//                        .startMessage(messagesWithDate.get(0))
+//                        .endMessage(messagesWithDate.get(messagesWithDate.size() - 1))
+//                        .build();
+//
+//                if(checkpoint.hasInBetweenIt(newMessageWindow)){
+//                    //Considering only messages with date.
+//                    messages = messagesWithDate;
+//                    messages = messageDatabaseHelper.uploadMessagesOnline(messages);
+//
+//                    MessageReadCheckpoint newCheckpoint = checkpoint.clone();
+//                    newCheckpoint.updateStartMessage(messagesWithDate.get(messages.size() - 1));
+//
+//                    checkpoint.updateEndMessage(messages.get(0));
+//
+//                    messageDatabaseHelper.updateAndCreateCheckpoint(checkpoint, newCheckpoint);
+//                } else
+//                    continue;
+//            }
+//            break;
+//        }
         Log.d(LOG_TAG, "Saved: " + messages);
     }
 
@@ -293,8 +315,8 @@ public class WhatsAppReadService extends MessageReadService {
 
     private Long getTimeInDayMillies(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
         try{
-            String timeText = (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 1).getText() : nodeInfo.getChild(nodeInfo.getChildCount() - 2).getText()).toString();
-            if (timeText.isEmpty() || timeText.indexOf(':') == -1)
+            String timeText = getTimeText(nodeInfo, isMessageReceived);
+            if (timeText == null || timeText.isEmpty() || timeText.indexOf(':') == -1)
                 return null;
 
             boolean is24HourFormat = android.text.format.DateFormat.is24HourFormat(context);
@@ -314,5 +336,35 @@ public class WhatsAppReadService extends MessageReadService {
 
         }catch (Exception e) {}
         return null;
+    }
+
+    /**
+     * Gets the scroll direction in the screen & un-sets the dateInCurrentScroll
+     * @param accessibilityEvent
+     */
+    private void getScroll(AccessibilityEvent accessibilityEvent) {
+
+        AccessibilityNodeInfo source = accessibilityEvent.getSource();
+        int toIndex = accessibilityEvent.getToIndex(), fromIndex = accessibilityEvent.getFromIndex();
+        if (lastToIndex == -1) {
+            lastToIndex = accessibilityEvent.getToIndex();
+            lastFromIndex = accessibilityEvent.getFromIndex();
+
+        } else if (lastFromIndex > fromIndex || lastToIndex > toIndex){
+            Log.d(LOG_TAG, "Scroll Down");
+            dateInCurrentScroll = null;
+            if ((toIndex - fromIndex + 1) == source.getChildCount()) {
+                Log.d(LOG_TAG, "New Messages Added: " + (lastFromIndex - fromIndex));
+            }
+        } else if (fromIndex - lastFromIndex > 70 || toIndex - lastToIndex > 70){
+            Log.d(LOG_TAG, "Scroll Down");
+            dateInCurrentScroll = null;
+            offset -= 100;
+        } else {
+            Log.d(LOG_TAG, "Scroll Up");
+            if ((toIndex - fromIndex + 1) == source.getChildCount()) {
+                Log.d(LOG_TAG, "New Messages Added: " + (toIndex - lastToIndex));
+            }
+        }
     }
 }
