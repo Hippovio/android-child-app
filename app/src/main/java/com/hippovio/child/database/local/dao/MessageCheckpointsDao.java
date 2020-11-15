@@ -13,6 +13,9 @@ import com.hippovio.child.database.local.entities.MessageSyncStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.Single;
+
 import static com.hippovio.child.database.local.constants.TableName.MESSAGE_READ_CHECKPOINTS;
 
 @Dao
@@ -22,7 +25,7 @@ public abstract class MessageCheckpointsDao {
     public abstract List<MessageReadCheckpoint> getAll();
 
     @Insert
-    public abstract void insertAll(MessageReadCheckpoint... checkpoints);
+    public abstract Single<List<Long>> insertAll(MessageReadCheckpoint... checkpoints);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     public abstract void updateMessageReadCheckpoint(MessageReadCheckpoint messageReadCheckpoint);

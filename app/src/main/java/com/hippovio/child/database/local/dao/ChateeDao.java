@@ -9,6 +9,8 @@ import com.hippovio.child.database.local.entities.Chatee;
 
 import java.util.List;
 
+import io.reactivex.Single;
+
 import static com.hippovio.child.constants.Sources.INSTAGRAM;
 import static com.hippovio.child.constants.Sources.WHATSAPP;
 import static com.hippovio.child.database.local.constants.TableName.CHATEE;
@@ -23,13 +25,13 @@ public interface ChateeDao {
     List<Long> insertAll(Chatee... chatees);
 
     @Insert
-    Long insert(Chatee chatees);
+    Single<Long> insert(Chatee chatees);
 
     @Delete
     void delete(Chatee chatee);
 
-    @Query("SELECT * FROM " + CHATEE + " WHERE source= '" + WHATSAPP + "' AND identifier= :phoneNumber limit 1")
-    Chatee getWhatsappChateeForSender(String phoneNumber);
+    @Query("SELECT * FROM " + CHATEE + " WHERE identifier= :phoneNumber limit 1")
+    Single<Chatee> getWhatsappChateeForSender(String phoneNumber);
 
     @Query("SELECT * FROM " + CHATEE + " WHERE source= '" + INSTAGRAM + "' AND identifier= :instagramUsername")
     Chatee getInstagramChateeForSender(String instagramUsername);
