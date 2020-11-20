@@ -30,9 +30,7 @@ public interface ChateeDao {
     @Delete
     void delete(Chatee chatee);
 
-    @Query("SELECT * FROM " + CHATEE + " WHERE identifier= :phoneNumber limit 1")
-    Single<Chatee> getWhatsappChateeForSender(String phoneNumber);
+    @Query("SELECT * FROM " + CHATEE + " WHERE identifier_value= :identifierValue limit 1")
+    Single<Chatee> getWhatsappChateeForSender(String identifierValue);
 
-    @Query("SELECT * FROM " + CHATEE + " WHERE source= '" + INSTAGRAM + "' AND identifier= :instagramUsername")
-    Chatee getInstagramChateeForSender(String instagramUsername);
 }

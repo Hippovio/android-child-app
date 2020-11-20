@@ -1,25 +1,17 @@
 package com.hippovio.child.services.messageRead;
 
 import android.content.Context;
-import android.util.Log;
-import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.hippovio.child.database.MessageDatabaseHelper;
 import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
+import com.hippovio.child.helpers.AsyncHelper;
 import com.hippovio.child.pojos.Message;
-import com.hippovio.child.services.messageRead.helpers.MessageHelper;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 public abstract class MessageReadService {
 
@@ -27,6 +19,7 @@ public abstract class MessageReadService {
     protected Context context;
     protected MessageDatabaseHelper messageDatabaseHelper;
     protected Chatee chatee;
+    protected List<MessageReadCheckpoint> checkpoints;
 
     /**
      * Any Event for a particular Package
@@ -88,4 +81,25 @@ public abstract class MessageReadService {
      */
     protected abstract void insertChat(List<Message> messages);
 
+    protected void createNewChatee(Chatee newChatee) {
+        messageDatabaseHelper.createAndSaveNewChattee(newChatee, new AsyncHelper.CallBack<Long>() {
+            @Override
+            public void onSuccess(Long chateeId) {
+                newChatee.setId(chateeId);
+                chatee = newChatee;
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                error.printStackTrace();
+            }
+        });
+    }
+
+    protected List<MessageReadCheckpoint> getCheckpoints() {
+        if (checkpoints == null) {
+            checkpoints = messageDatabaseHelper.getLocalMessageBreakPointsForChatee(chatee);
+        }
+        return checkpoints;
+    }
 }

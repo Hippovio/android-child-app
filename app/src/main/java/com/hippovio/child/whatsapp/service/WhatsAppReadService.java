@@ -11,9 +11,9 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import androidx.room.EmptyResultSetException;
 
 import com.hippovio.child.AppUtil;
-import com.hippovio.child.database.callbacks.DatabaseCallbacks;
 import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
+import com.hippovio.child.helpers.AsyncHelper;
 import com.hippovio.child.services.messageRead.helpers.AccessibilityHelper;
 import com.hippovio.child.database.MessageDatabaseHelper;
 import com.hippovio.child.pojos.Message;
@@ -23,11 +23,13 @@ import com.hippovio.child.whatsapp.Constants;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -36,10 +38,13 @@ import static com.hippovio.child.enums.Sources.WHATSAPP;
 
 public class WhatsAppReadService extends MessageReadService {
 
-    private static Date dateInCurrentScroll = null;
+    private Date dateInCurrentScroll = null;
     private boolean areUnreadMessages = false;
-
-
+    private int lastToIndex = -1;
+    private int lastFromIndex = -1;
+    private int offset = 0;
+    int loop = 1;
+    List<Integer> q = new ArrayList<>();
     public WhatsAppReadService() {
         LOG_TAG = WHATSAPP.value();
     }
@@ -50,8 +55,9 @@ public class WhatsAppReadService extends MessageReadService {
         this.context = context;
         messageDatabaseHelper = new MessageDatabaseHelper(context);
 
-        if (accessibilityEvent.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
-            if (chatee == null)
+        if (accessibilityEvent.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                && Constants.conversationListViewId.equals(accessibilityEvent.getSource().getViewIdResourceName())) {
+            if (debounceScrollEvents(accessibilityEvent) || chatee == null)
                 return;
             readChat(accessibilityEvent);
 
@@ -59,18 +65,36 @@ public class WhatsAppReadService extends MessageReadService {
             AccessibilityNodeInfo rootNode = AccessibilityHelper.getNodeInfo(accessibilityEvent.getSource(), Constants.conversationContactNameId);
             if (rootNode == null) {
                 chatee = null;
+                lastToIndex = -1;
+                lastFromIndex = -1;
+                offset = 0;
+                checkpoints = null;
                 return;
             }
             extractChatee(rootNode);
             areUnreadMessages = false;
-        } else
-            return;
+        }
+    }
+
+    /**
+     * Func. to decide whether to ignore duplicate events of scroll.
+     * @param event Accessibility events
+     * @return true, if we want to ignore.
+     */
+    private boolean debounceScrollEvents(AccessibilityEvent event) {
+        int toIndex = event.getToIndex(), fromIndex = event.getFromIndex();
+        if (toIndex != lastToIndex && fromIndex != lastFromIndex) {
+            getScroll(event);
+            lastFromIndex = fromIndex;
+            lastToIndex = toIndex;
+            return false;
+        }
+        return true;
     }
 
     @Override
     protected void readChat(AccessibilityEvent accessibilityEvent) {
         AccessibilityNodeInfo source = accessibilityEvent.getSource();
-
         LinkedList<Message> messages = readMessages(source);
 
         new Thread(() -> {
@@ -87,50 +111,52 @@ public class WhatsAppReadService extends MessageReadService {
                 areUnreadMessages = true;
                 // Since unread message therefore date will be today unless a date tag is found.
                 //TODO: Consider scroll down
-                WhatsAppReadService.dateInCurrentScroll = new Date();
+                dateInCurrentScroll = new Date();
             }
             return null;
         }
 
         setDateInCurrentScroll(groupView);
         boolean isMessageReceived = isMessageReceived(groupView);
-        String timeText = getTimeText(groupView, isMessageReceived);
         String msgText = getMessageText(groupView, isMessageReceived);
 
+        Long timeInDayMillies = getTimeInDayMillies(groupView, isMessageReceived);
+
         // Ignoring if other views
-        if (timeText.isEmpty() || msgText.isEmpty() || timeText.indexOf(':') == -1)
+        if (msgText == null || msgText.isEmpty() || timeInDayMillies == null)
             return null;
 
         return Message.MessageBuilder().chatee(chatee).msg(msgText).isReceived(isMessageReceived)
-                .timeText(timeText).date(WhatsAppReadService.dateInCurrentScroll).isUnread(areUnreadMessages).build();
+                .timeInDayMillies(timeInDayMillies).date(dateInCurrentScroll).isUnread(areUnreadMessages).build();
     }
 
     @Override
     protected boolean isMessageReceived(AccessibilityNodeInfo nodeInfo) {
-        final String[] sentMessageDesciption = {"Delivered", "Read", "Sent"};
         try{
-            return Arrays.binarySearch(sentMessageDesciption, nodeInfo.getChild(nodeInfo.getChildCount() - 1).getContentDescription().toString()) == -1;
-        } catch (Exception e) {
-            return true;
-        }
+            if (Constants.messageStatusId.equals(nodeInfo.getChild(nodeInfo.getChildCount() - 1).getViewIdResourceName()))
+                return Arrays.binarySearch(Constants.sentMessageDesciption, nodeInfo.getChild(nodeInfo.getChildCount() - 1).getContentDescription().toString()) == -1;
+        } catch (Exception e) {}
+        return true;
     }
 
     @Override
     protected String getMessageText(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
         try{
-            return (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 2).getText().toString() : nodeInfo.getChild(nodeInfo.getChildCount() - 3).getText().toString());
-        }catch (Exception e) {
-            return "";
-        }
+            AccessibilityNodeInfo messageNode = (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 2) : nodeInfo.getChild(nodeInfo.getChildCount() - 3));
+            if (Constants.messageTextId.equals(messageNode.getViewIdResourceName()))
+                return messageNode.getText().toString();
+        }catch (Exception e) {}
+        return null;
     }
 
     @Override
     protected String getTimeText(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
         try{
-            return (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 1).getText() : nodeInfo.getChild(nodeInfo.getChildCount() - 2).getText()).toString();
-        }catch (Exception e) {
-            return "";
-        }
+            AccessibilityNodeInfo timeNode = (isMessageReceived ? nodeInfo.getChild(nodeInfo.getChildCount() - 1) : nodeInfo.getChild(nodeInfo.getChildCount() - 2));
+            if (Constants.messageDateId.equals(timeNode.getViewIdResourceName()))
+                return timeNode.getText().toString();
+        }catch (Exception e) {}
+        return null;
     }
 
     @Override
@@ -153,25 +179,22 @@ public class WhatsAppReadService extends MessageReadService {
             }
             else {
                 String finalPhoneNumber = phoneNumber;
-                messageDatabaseHelper.getLocalWhatsappChateeForSender(phoneNumber, chateeRetrieved -> {
-                    chatee = chateeRetrieved;
-                    if(chatee == null){
-
+                messageDatabaseHelper.getLocalWhatsappChateeForSender(phoneNumber, new AsyncHelper.CallBack<Chatee>() {
+                    @Override
+                    public void onSuccess(Chatee chateeRetrieved) {
+                        chatee = chateeRetrieved;
                     }
-                }, throwable -> {
-                    if(throwable instanceof EmptyResultSetException){
-                        final Chatee newChatee = new Chatee(WHATSAPP, INDIVIDUAL, chateeName, finalPhoneNumber);
-                        messageDatabaseHelper.createAndSaveNewChattee(newChatee, new DatabaseCallbacks.chateeIdCallback() {
-                            @Override
-                            public void onChateeId(Long chateeId) {
-                                newChatee.setChateeId(chateeId);
-                                chatee = newChatee;
-                            }
-                        });
-                    }
-                    else {
-                        throwable.printStackTrace();
 
+                    @Override
+                    public void onError(Throwable error) {
+                        if (error instanceof EmptyResultSetException) {
+                            final Chatee newChatee = Chatee.ChateeBuilder().chateeName(chateeName)
+                                    .chateeSource(WHATSAPP).chateeType(INDIVIDUAL).identifierValue(finalPhoneNumber).build();
+                            createNewChatee(newChatee);
+                        } else {
+                            error.printStackTrace();
+
+                        }
                     }
                 });
             }
@@ -199,7 +222,7 @@ public class WhatsAppReadService extends MessageReadService {
         try{
             Date date = getDate(nodeInfo.getChild(0).getText().toString());
             if (date != null)
-                WhatsAppReadService.dateInCurrentScroll = date;
+                dateInCurrentScroll = date;
         } catch (Exception e){}
     }
 
@@ -233,27 +256,31 @@ public class WhatsAppReadService extends MessageReadService {
 
     @Override
     protected void insertChat(List<Message> messages) {
-        Log.d(LOG_TAG, "Received: " + messages);
 
         List<Message> messagesWithDate = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
-        List<MessageReadCheckpoint> messageCheckpoints = messageDatabaseHelper.getLocalMessageBreakPointsForChatee(chatee);
+        ListIterator<MessageReadCheckpoint> messageCheckpoints = getCheckpoints().listIterator();
 
-        for(MessageReadCheckpoint checkpoint : messageCheckpoints){
-
+        while (messageCheckpoints.hasNext()){
+            MessageReadCheckpoint checkpoint = messageCheckpoints.next();
             Pair<Integer, Integer> boundaryIndex = MessageHelper.findMessageOverlap(checkpoint, messages);
 
             if (boundaryIndex.first != -1 && boundaryIndex.second != -1) {
                 Message boundaryMessage = messages.get(boundaryIndex.first);
                 messages = messages.subList(boundaryIndex.first + 1, boundaryIndex.second);
+                if (messages.size() == 0)
+                    continue;
                 messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
                 messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
                 messageDatabaseHelper.deleteCheckpoint(checkpoint);
+                checkpoints.remove(checkpoint);
                 //TODO: merge next checkpoint if that also overlaps
             } else if (boundaryIndex.first != -1) {
                 Message boundaryMessage = messages.get(boundaryIndex.first);
                 //messages after this index are of interest
                 messages = messages.subList(boundaryIndex.first + 1, messages.size());
+                if (messages.size() == 0)
+                    continue;
                 messages = MessageHelper.updateDate(messages, boundaryMessage.getDate());
                 messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
@@ -264,6 +291,8 @@ public class WhatsAppReadService extends MessageReadService {
                 //messages before this index are of interest
                 messages = messages.subList(0, boundaryIndex.second);
                 messages = messages.stream().filter(message -> message.getDateTime() != null).collect(Collectors.toList());
+                if (messages.size() == 0)
+                    continue;
                 messages = messageDatabaseHelper.uploadMessagesOnline(messages);
 
                 checkpoint.updateEndMessage(messages.get(0));
@@ -286,12 +315,12 @@ public class WhatsAppReadService extends MessageReadService {
                     checkpoint.updateEndMessage(messages.get(0));
 
                     messageDatabaseHelper.updateAndCreateCheckpoint(checkpoint, newCheckpoint);
+                    checkpoints.add(messageCheckpoints.previousIndex(), newCheckpoint);
                 } else
                     continue;
             }
             break;
         }
-        Log.d(LOG_TAG, "Saved: " + messages);
     }
 
     @Override
@@ -310,6 +339,59 @@ public class WhatsAppReadService extends MessageReadService {
         return messages;
     }
 
+    private Long getTimeInDayMillies(AccessibilityNodeInfo nodeInfo,  boolean isMessageReceived) {
+        try{
+            String timeText = getTimeText(nodeInfo, isMessageReceived);
+            if (timeText == null || timeText.isEmpty() || timeText.indexOf(':') == -1)
+                return null;
 
+            boolean is24HourFormat = android.text.format.DateFormat.is24HourFormat(context);
 
+            int hrs = Integer.parseInt(timeText.substring(0, timeText.indexOf(':')));
+            int mins = Integer.parseInt(is24HourFormat ?
+                    timeText.substring(timeText.indexOf(':') + 1)
+                    : timeText.substring(timeText.indexOf(':') + 1, timeText.indexOf(" ")));
+
+            Long time =  (hrs * 3600000L) + (mins * 60000L);
+            if (!is24HourFormat) {
+                boolean isPm = timeText.substring(timeText.indexOf(" ") + 1).equalsIgnoreCase("pm");
+                if (isPm)
+                    time += 12 * 60 * 60 * 1000;
+            }
+            return time;
+
+        }catch (Exception e) {}
+        return null;
+    }
+
+    /**
+     * Gets the scroll direction in the screen & un-sets the dateInCurrentScroll
+     * @param accessibilityEvent
+     */
+    private void getScroll(AccessibilityEvent accessibilityEvent) {
+
+        AccessibilityNodeInfo source = accessibilityEvent.getSource();
+        int toIndex = accessibilityEvent.getToIndex(), fromIndex = accessibilityEvent.getFromIndex();
+        if (lastToIndex == -1) {
+            return;
+
+        } else if (lastFromIndex > fromIndex || lastToIndex > toIndex){
+            Log.d(LOG_TAG, "Scroll Up");
+            dateInCurrentScroll = null;
+            areUnreadMessages = false;
+            if ((toIndex - fromIndex + 1) == source.getChildCount()) {
+                Log.d(LOG_TAG, "New Messages Added: " + (lastFromIndex - fromIndex));
+            }
+        } else if (fromIndex - lastFromIndex > 70 || toIndex - lastToIndex > 70){
+            Log.d(LOG_TAG, "Scroll Up");
+            dateInCurrentScroll = null;
+            areUnreadMessages = false;
+            offset -= 100;
+        } else {
+            Log.d(LOG_TAG, "Scroll Down");
+            if ((toIndex - fromIndex + 1) == source.getChildCount()) {
+                Log.d(LOG_TAG, "New Messages Added: " + (toIndex - lastToIndex));
+            }
+        }
+    }
 }

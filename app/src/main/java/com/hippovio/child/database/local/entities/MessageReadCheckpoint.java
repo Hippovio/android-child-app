@@ -3,7 +3,7 @@ package com.hippovio.child.database.local.entities;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.PrimaryKey;
+import androidx.room.Ignore;
 import androidx.room.TypeConverters;
 
 import com.hippovio.child.database.local.constants.TableName;
@@ -28,11 +28,7 @@ import lombok.Setter;
 @Entity(tableName = TableName.MESSAGE_READ_CHECKPOINTS)
 @Getter
 @Setter
-public class MessageReadCheckpoint {
-
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
-    private Integer checkpointId;
+public class MessageReadCheckpoint extends com.hippovio.child.database.local.entities.Entity {
 
     @ColumnInfo(name = "chatee_id")
     @NonNull
@@ -64,16 +60,19 @@ public class MessageReadCheckpoint {
     @ColumnInfo(name = "end_message_date")
     private Date endMessageDate;
 
+    @Ignore
+    private String userId;
+
     @Builder(builderMethodName = "MessageCheckpointsBuilder")
     public static MessageReadCheckpoint messageCheckpoints(Message startMessage, Message endMessage) {
         MessageReadCheckpoint messageReadCheckpoint = new MessageReadCheckpoint();
         messageReadCheckpoint.startMessageId = startMessage.getId();
         messageReadCheckpoint.startMessageHash = startMessage.getMessageHash();
-        messageReadCheckpoint.startMessageDate = startMessage.getDate();
+        messageReadCheckpoint.startMessageDate = startMessage.getDateTime();
         messageReadCheckpoint.endMessageId = endMessage.getId();
         messageReadCheckpoint.endMessageHash = endMessage.getMessageHash();
-        messageReadCheckpoint.endMessageDate = endMessage.getDate();
-        messageReadCheckpoint.chateeId = startMessage.getChatee().getChateeId();
+        messageReadCheckpoint.endMessageDate = endMessage.getDateTime();
+        messageReadCheckpoint.chateeId = startMessage.getChatee().getId();
         messageReadCheckpoint.source = startMessage.getChatee().getChateeSource();
 
         return messageReadCheckpoint;
@@ -88,13 +87,13 @@ public class MessageReadCheckpoint {
     public void updateStartMessage(Message startMessage) {
         startMessageId = startMessage.getId();
         startMessageHash = startMessage.getMessageHash();
-        startMessageDate = startMessage.getDate();
+        startMessageDate = startMessage.getDateTime();
     }
 
     public void updateEndMessage(Message endMessage) {
         endMessageId = endMessage.getId();
         endMessageHash = endMessage.getMessageHash();
-        endMessageDate = endMessage.getDate();
+        endMessageDate = endMessage.getDateTime();
     }
 
     @Override
@@ -108,6 +107,7 @@ public class MessageReadCheckpoint {
         checkpoint.endMessageDate = endMessageDate;
         checkpoint.source = source;
         checkpoint.chateeId = chateeId;
+        checkpoint.userId = userId;
         return checkpoint;
     }
 }

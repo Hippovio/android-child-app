@@ -18,21 +18,18 @@ public class Message {
     private Chatee chatee;
     private String msg;
     private Boolean isReceived;
-    private String timeText;
+    private Long timeInDayMillies;
     private Boolean isUnread;
     private Date dateTime = null;
     private String messageHash;
-    //state - enum: NEW, UNREAD, UPLOADED, COMPLETE, READ
-    //source - enum: WHATSAPP, FB
-    // Global:
-    // childId
+
     @Builder(builderMethodName = "MessageBuilder")
-    public static Message messageBuilder(Chatee chatee, String msg, Boolean isReceived, Date date, String timeText, boolean isUnread) {
+    public static Message messageBuilder(Chatee chatee, String msg, Boolean isReceived, Date date, Long timeInDayMillies, boolean isUnread) {
         Message message = new Message();
         message.setChatee(chatee);
         message.setMsg(msg);
         message.setIsReceived(isReceived);
-        message.setTimeText(timeText);
+        message.setTimeInDayMillies(timeInDayMillies);
         message.setDate(date);
         message.setIsUnread(isUnread);
         message.setMessageHash(HashingService.computeHash(message));
@@ -58,7 +55,7 @@ public class Message {
                 ", msg='" + msg + "\'\n" +
                 ", isReceived=" + isReceived + "\n" +
                 ", dateTime=" + dateTime + '\n' +
-                ", timeText='" + timeText + "\'\n" +
+                ", timeInDayMillies='" + timeInDayMillies + "\'\n" +
                 ", isUnread='" + isUnread + "\'\n" +
                 ", messageHash=" + messageHash + '\n' +
                 '}';
@@ -67,16 +64,7 @@ public class Message {
     public void setDate(Date date) {
         if (date == null)
             return;
-        try{
-            int hrs = Integer.parseInt(timeText.substring(0, timeText.indexOf(':')));
-            int mins = Integer.parseInt(timeText.substring(timeText.indexOf(':') + 1, timeText.indexOf(" ")));
-            boolean isPm = timeText.substring(timeText.indexOf(" ") + 1).equalsIgnoreCase("pm");
-            Long time =  date.getTime() + (hrs * 3600000) + (mins * 60000);
-            if (isPm) {
-                time += 12 * 60 * 60 * 1000;
-            }
-            dateTime = new Date(time);
-        } catch (Exception e) {}
+        dateTime = new Date(date.getTime() + timeInDayMillies);
     }
 
     public Date getDate() {

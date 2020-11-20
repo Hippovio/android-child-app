@@ -2,18 +2,12 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "88d2c740eb0cb91bf960b0349a0e2c7a",
+    "identityHash": "175d4eb6ebc9152731410fe56e743f54",
     "entities": [
       {
         "tableName": "MessageReadCheckpoints",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `chatee_id` INTEGER NOT NULL, `message_source` INTEGER NOT NULL, `start_message_id` TEXT, `start_message_hash` TEXT, `start_message_date` TEXT NOT NULL, `end_message_id` TEXT, `end_message_hash` TEXT, `end_message_date` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chatee_id` INTEGER NOT NULL, `message_source` INTEGER NOT NULL, `start_message_id` TEXT, `start_message_hash` TEXT, `start_message_date` TEXT NOT NULL, `end_message_id` TEXT, `end_message_hash` TEXT, `end_message_date` TEXT, `id` INTEGER PRIMARY KEY AUTOINCREMENT, `createdDate` TEXT, `updatedDate` TEXT)",
         "fields": [
-          {
-            "fieldPath": "checkpointId",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
           {
             "fieldPath": "chateeId",
             "columnName": "chatee_id",
@@ -61,6 +55,24 @@
             "columnName": "end_message_date",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdDate",
+            "columnName": "createdDate",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedDate",
+            "columnName": "updatedDate",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -74,14 +86,8 @@
       },
       {
         "tableName": "Chatee",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `source` INTEGER NOT NULL, `type` INTEGER NOT NULL, `name` TEXT NOT NULL, `identifier` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`source` INTEGER NOT NULL, `type` INTEGER NOT NULL, `name` TEXT NOT NULL, `identifier_value` TEXT NOT NULL, `identifier_field` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT, `createdDate` TEXT, `updatedDate` TEXT)",
         "fields": [
-          {
-            "fieldPath": "chateeId",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
           {
             "fieldPath": "chateeSource",
             "columnName": "source",
@@ -101,10 +107,34 @@
             "notNull": true
           },
           {
-            "fieldPath": "chateeIdentifier",
-            "columnName": "identifier",
+            "fieldPath": "identifierValue",
+            "columnName": "identifier_value",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "identifierField",
+            "columnName": "identifier_field",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdDate",
+            "columnName": "createdDate",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedDate",
+            "columnName": "updatedDate",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -158,7 +188,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '88d2c740eb0cb91bf960b0349a0e2c7a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '175d4eb6ebc9152731410fe56e743f54')"
     ]
   }
 }

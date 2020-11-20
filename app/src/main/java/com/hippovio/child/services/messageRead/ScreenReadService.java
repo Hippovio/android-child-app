@@ -48,7 +48,7 @@ public class ScreenReadService extends AccessibilityService {
         Log.i("Accessibility", "onServiceConnected: ");
         // Set the type of events that this service wants to listen to. Others
         // won't be passed to this service.
-        info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK | AccessibilityEvent.TYPE_VIEW_SCROLLED | AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED | AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
 
         // If you only want this service to work with specific applications, set their
         // package names here. Otherwise, when the service is activated, it will listen
@@ -57,16 +57,16 @@ public class ScreenReadService extends AccessibilityService {
 
 
         // Set the type of feedback your service will provide.
-        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN;
+        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_VISUAL;
 
         // Default services are invoked only if no package-specific ones are present
         // for the type of AccessibilityEvent generated. This service *is*
         // application-specific, so the flag isn't necessary. If this was a
         // general-purpose service, it would be worth considering setting the
         // DEFAULT flag.
-        info.flags = AccessibilityServiceInfo.DEFAULT;
+        info.flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
 
-        info.notificationTimeout = 100;
+        info.notificationTimeout = 1000;
 
         this.setServiceInfo(info);
     }
