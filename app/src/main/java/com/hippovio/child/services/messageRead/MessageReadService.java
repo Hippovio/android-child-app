@@ -85,7 +85,7 @@ public abstract class MessageReadService {
         messageDatabaseHelper.createAndSaveNewChattee(newChatee, new AsyncHelper.CallBack<Long>() {
             @Override
             public void onSuccess(Long chateeId) {
-                newChatee.setChateeId(chateeId);
+                newChatee.setId(chateeId);
                 chatee = newChatee;
             }
 

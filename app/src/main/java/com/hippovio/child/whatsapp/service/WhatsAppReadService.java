@@ -23,6 +23,7 @@ import com.hippovio.child.whatsapp.Constants;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -42,7 +43,8 @@ public class WhatsAppReadService extends MessageReadService {
     private int lastToIndex = -1;
     private int lastFromIndex = -1;
     private int offset = 0;
-
+    int loop = 1;
+    List<Integer> q = new ArrayList<>();
     public WhatsAppReadService() {
         LOG_TAG = WHATSAPP.value();
     }
@@ -72,8 +74,26 @@ public class WhatsAppReadService extends MessageReadService {
             extractChatee(rootNode);
             areUnreadMessages = false;
         }
+
+        //new Thread(() -> execute(loop++)).start();
     }
 
+    synchronized void execute(int n){
+        try {
+            if (!q.isEmpty()) {
+                q.add(n);
+                wait();
+            } else
+                q.add(n);
+
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Log.d("RAGHAV:", "" + q.remove(0));
+        notify();
+
+    }
     /**
      * Func. to decide whether to ignore duplicate events of scroll.
      * @param event Accessibility events
@@ -186,7 +206,8 @@ public class WhatsAppReadService extends MessageReadService {
                     @Override
                     public void onError(Throwable error) {
                         if (error instanceof EmptyResultSetException) {
-                            final Chatee newChatee = new Chatee(WHATSAPP, INDIVIDUAL, chateeName, finalPhoneNumber);
+                            final Chatee newChatee = Chatee.ChateeBuilder().chateeName(chateeName)
+                                    .chateeSource(WHATSAPP).chateeType(INDIVIDUAL).identifierValue(finalPhoneNumber).build();
                             createNewChatee(newChatee);
                         } else {
                             error.printStackTrace();

@@ -34,7 +34,7 @@ public abstract class MessageCheckpointsDao {
     public abstract void delete(MessageReadCheckpoint... checkpoints);
 
     @Query("SELECT * FROM " + MESSAGE_READ_CHECKPOINTS + " WHERE chatee_id= :chateeId ORDER BY start_message_date DESC")
-    public abstract List<MessageReadCheckpoint> getCheckpointsForChateeIdOrderedByLatest(String chateeId);
+    public abstract List<MessageReadCheckpoint> getCheckpointsForChateeIdOrderedByLatest(Long chateeId);
 
     @Transaction
     public void updateAndCreateCheckpoint(MessageReadCheckpoint update, MessageReadCheckpoint create){

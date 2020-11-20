@@ -4,6 +4,8 @@ import android.content.Context;
 import androidx.room.Room;
 import com.hippovio.child.database.firebase.FirebaseHelper;
 import com.hippovio.child.database.firebase.FirebaseServiceInterfaces;
+import com.hippovio.child.database.firebase.firestoreDao.ChateeDao;
+import com.hippovio.child.database.firebase.firestoreDao.CheckpointsDao;
 import com.hippovio.child.database.local.HippovioDatabase;
 import com.hippovio.child.database.local.entities.Chatee;
 import com.hippovio.child.database.local.entities.MessageReadCheckpoint;
@@ -23,9 +25,13 @@ import java.util.List;
 public class MessageDatabaseHelper {
 
     HippovioDatabase localDb;
+    ChateeDao chateeOnlineDao;
+    CheckpointsDao checkpointsOnlineDao;
 
     public MessageDatabaseHelper(Context context) {
         localDb = Room.databaseBuilder(context, HippovioDatabase.class, "database-name").build();
+        chateeOnlineDao = new ChateeDao();
+        checkpointsOnlineDao = new CheckpointsDao();
     }
 
     /**
@@ -40,6 +46,8 @@ public class MessageDatabaseHelper {
         new AsyncHelper<Long>().asyncForSingle(localDb.chateeDao().insert(newChatee), new AsyncHelper.CallBack<Long>() {
                     @Override
                     public void onSuccess(Long insertedChatteeId) {
+                        newChatee.setId(insertedChatteeId);
+
                         chateeIdCallback.onSuccess(insertedChatteeId);
 
                         MessageReadCheckpoint newChatteeMessageCheckpoint = new MessageReadCheckpoint();
@@ -50,6 +58,8 @@ public class MessageDatabaseHelper {
                         newChatteeMessageCheckpoint.setStartMessageDate(startMessageDate.getTime());
 
                         new Thread(() -> localDb.messageCheckpointsDao().insertAll(newChatteeMessageCheckpoint)).start();
+                        uploadChateeOnline(newChatee);
+                        uploadCheckpointsOnline(newChatteeMessageCheckpoint);
                     }
 
                     @Override
@@ -59,7 +69,7 @@ public class MessageDatabaseHelper {
 
 
     public List<MessageReadCheckpoint> getLocalMessageBreakPointsForChatee(Chatee chatee){
-        return localDb.messageCheckpointsDao().getCheckpointsForChateeIdOrderedByLatest(chatee.getChateeId().toString());
+        return localDb.messageCheckpointsDao().getCheckpointsForChateeIdOrderedByLatest(chatee.getId());
     }
 
     public void deleteCheckpoint(MessageReadCheckpoint checkpoint){
@@ -72,6 +82,8 @@ public class MessageDatabaseHelper {
 
     public void updateAndCreateCheckpoint(MessageReadCheckpoint update, MessageReadCheckpoint create){
         localDb.messageCheckpointsDao().updateAndCreateCheckpoint(update, create);
+        uploadCheckpointsOnline(create);
+        uploadCheckpointsOnline(update, create);
     }
 
 
@@ -114,4 +126,11 @@ public class MessageDatabaseHelper {
         return uploadedMessages;
     }
 
+    public void uploadChateeOnline(final Chatee chatee) {
+        chateeOnlineDao.saveOne(chatee, writeSuccessful -> {});
+    }
+
+    public void uploadCheckpointsOnline(MessageReadCheckpoint... checkpoints) {
+        checkpointsOnlineDao.saveList(writeSuccessful -> {}, checkpoints);
+    }
 }
