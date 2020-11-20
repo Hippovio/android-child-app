@@ -74,26 +74,8 @@ public class WhatsAppReadService extends MessageReadService {
             extractChatee(rootNode);
             areUnreadMessages = false;
         }
-
-        //new Thread(() -> execute(loop++)).start();
     }
 
-    synchronized void execute(int n){
-        try {
-            if (!q.isEmpty()) {
-                q.add(n);
-                wait();
-            } else
-                q.add(n);
-
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Log.d("RAGHAV:", "" + q.remove(0));
-        notify();
-
-    }
     /**
      * Func. to decide whether to ignore duplicate events of scroll.
      * @param event Accessibility events
